@@ -6,6 +6,6 @@ export class AppController {
 
   @Get()
   welcome() {
-    return "Welcome to the Birthday Reminder's server.\nYou can find our website by url https://birthday-reminder.withlitvinov.com.";
+    return "Welcome to the Birthday Reminder's server.</br>You can find our website by url https://birthday-reminder.withlitvinov.com.";
   }
 }
