@@ -48,4 +48,12 @@ export class PersonProfileModel {
       data,
     });
   }
+
+  delete(id: string) {
+    return this.db.personProfile.delete({
+      where: {
+        id,
+      },
+    });
+  }
 }

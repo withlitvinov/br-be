@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 
 import { ControllerVersion } from '@/constants/controller-version.enum';
 import { PersonProfileModel } from '@/models/person-profile.model';
@@ -42,5 +50,10 @@ export class PersonProfilesControllerV1 {
       name: updatePersonProfile.name,
       birthday: updatePersonProfile.birthday,
     });
+  }
+
+  @Delete(':id')
+  delete(@Param('id') personProfileId: string) {
+    return this.personProfileModel.delete(personProfileId);
   }
 }
