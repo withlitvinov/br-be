@@ -1,0 +1,9 @@
+version: '3.9'
+name: 'birthday_reminder_local'
+services:
+  postgres:
+    image: postgres:16
+    env_file:
+      - ../.envs/.env.local
+    ports:
+      - "5432:5432"
