@@ -8,6 +8,7 @@ const APP_PORT = 4000;
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.enableCors(); // TODO: Configure for production
   app.setGlobalPrefix('/api', {
     exclude: [{ path: '/', method: RequestMethod.GET }],
   });
