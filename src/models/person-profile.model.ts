@@ -21,6 +21,12 @@ export class PersonProfileModel {
     return this.db.personProfile.findMany();
   }
 
+  getById(id: string) {
+    return this.db.personProfile.findUnique({
+      where: { id },
+    });
+  }
+
   create(payload: CreatePersonProfilePayload) {
     return this.db.personProfile.create({
       data: {

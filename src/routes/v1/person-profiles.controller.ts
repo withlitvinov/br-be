@@ -33,6 +33,11 @@ export class PersonProfilesControllerV1 {
     return this.personProfileModel.all();
   }
 
+  @Get(':id')
+  getById(@Param('id') id: string) {
+    return this.personProfileModel.getById(id);
+  }
+
   @Post()
   create(@Body() createPersonProfileDto: CreatePersonProfileDto) {
     return this.personProfileModel.create({
