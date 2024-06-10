@@ -10,7 +10,7 @@ datasource db {
 model PersonProfile {
   id  String @id @db.Uuid @default(uuid())
   name String
-  birthday String @db.VarChar(10) // DD-MM-YYYY, when value for YYYY is "####" it means that year is null
+  birthday DateTime @db.Timestamp()
 
-  @@map("person_profile")
+  @@map("person_profiles")
 }

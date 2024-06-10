@@ -30,7 +30,7 @@ export class PersonProfilesControllerV1 {
 
   @Get()
   getAll() {
-    return this.personProfileModel.all();
+    return this.personProfileModel.getAll();
   }
 
   @Get(':id')

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, PersonProfile } from '@prisma/client';
 
 import { DbService } from '@/services';
 
@@ -13,11 +13,33 @@ interface UpdatePersonProfilePayload {
   birthday?: string;
 }
 
+export enum PersonProfileOrder {
+  NoOrder = 0,
+  UpcomingBirthday = 1,
+}
+
+type GetAllOptions = {
+  order: PersonProfileOrder;
+};
+
+// TODO:
+//  1. Add limit and offset.
+
 @Injectable()
 export class PersonProfileModel {
   constructor(private readonly db: DbService) {}
 
-  all() {
+  getAll(
+    options: GetAllOptions = {
+      order: PersonProfileOrder.NoOrder,
+    },
+  ) {
+    if (options.order === PersonProfileOrder.UpcomingBirthday) {
+      return this.db.$queryRaw<PersonProfile[]>(
+        this._findManyInUpcomingBirthdayOrderSql(),
+      );
+    }
+
     return this.db.personProfile.findMany();
   }
 
@@ -31,7 +53,7 @@ export class PersonProfileModel {
     return this.db.personProfile.create({
       data: {
         name: payload.name,
-        birthday: payload.birthday,
+        birthday: new Date(payload.birthday),
       },
     });
   }
@@ -61,5 +83,91 @@ export class PersonProfileModel {
         id,
       },
     });
+  }
+
+  private _findManyInUpcomingBirthdayOrderSql() {
+    return Prisma.sql`WITH
+  modified_person_profiles AS (
+    SELECT
+      *,
+      (
+        CASE
+          WHEN (
+            EXTRACT(
+              MONTH
+              FROM
+                birthday
+            ) > EXTRACT(
+              MONTH
+              FROM
+                CURRENT_DATE
+            )
+          )
+          OR (
+            EXTRACT(
+              MONTH
+              FROM
+                birthday
+            ) = EXTRACT(
+              MONTH
+              FROM
+                CURRENT_DATE
+            )
+            AND EXTRACT(
+              DAY
+              FROM
+                birthday
+            ) >= EXTRACT(
+              DAY
+              FROM
+                CURRENT_DATE
+            )
+          ) THEN MAKE_DATE(
+            EXTRACT(
+              YEAR
+              FROM
+                CURRENT_DATE
+            )::INT,
+            EXTRACT(
+              MONTH
+              FROM
+                birthday
+            )::INT,
+            EXTRACT(
+              DAY
+              FROM
+                birthday
+            )::INT
+          )
+          ELSE MAKE_DATE(
+            EXTRACT(
+              YEAR
+              FROM
+                CURRENT_DATE
+            )::INT + 1,
+            EXTRACT(
+              MONTH
+              FROM
+                birthday
+            )::INT,
+            EXTRACT(
+              DAY
+              FROM
+                birthday
+            )::INT
+          )
+        END
+      ) AS upcoming_birthday
+    FROM
+      person_profiles
+  )
+SELECT
+  id,
+  name,
+  birthday
+FROM
+  modified_person_profiles
+ORDER BY
+  upcoming_birthday ASC;`;
   }
 }
