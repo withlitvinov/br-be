@@ -10,7 +10,8 @@ datasource db {
 model PersonProfile {
   id  String @id @db.Uuid @default(uuid())
   name String
-  birthday DateTime @db.Timestamp()
+  birthday DateTime @db.Date
+  birthdayMarker Int @default(0) @map("birthday_marker")
 
   @@map("person_profiles")
 }
