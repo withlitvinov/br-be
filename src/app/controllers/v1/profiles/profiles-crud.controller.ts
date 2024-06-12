@@ -3,7 +3,7 @@ import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { ControllerVersionEnum, parseUuid } from '@/common';
 import { ProfilesOrderEnum, ProfileModel } from '@/profiles';
 
-import { CreateProfileDto } from './dtos/profiles-crud.dto';
+import { CreateProfileDto } from './dtos/create-profile.dto';
 
 const PATH_PREFIX = '/profiles';
 
