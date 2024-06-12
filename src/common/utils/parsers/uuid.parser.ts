@@ -1,6 +1,13 @@
-import type { uuid } from '../../types';
+import { validate, version } from 'uuid';
+
+import type { uuid } from '@/common';
+
+const UUID_VERSION = 4;
 
 export const parseUuid = (value: string): uuid => {
-  // TODO: Add validation for uuid here
-  return value as uuid;
+  if (validate(value) && version(value) === UUID_VERSION) {
+    return value as uuid;
+  }
+
+  throw new Error('Invalid uuid');
 };
