@@ -1,4 +1,4 @@
-export type CreateProfileDto = {
+export type CreateOneProfileRequestDto = {
   name: string;
   birthday: {
     day: number;

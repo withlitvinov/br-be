@@ -1,11 +1,20 @@
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import * as dayjs from 'dayjs';
 
 import { ControllerVersionEnum, parseUuid } from '@/common';
-import { ProfilesOrderEnum, ProfileModel } from '@/profiles';
+import { ProfileModel, ProfilesOrderEnum } from '@/profiles';
 
-import { CreateProfileDto } from './dtos/create-profile.dto';
+import type {
+  CreateOneProfileRequestDto,
+  GetManyProfilesResponseDto,
+  GetByIdProfileResponseDto,
+  CreateOneProfileResponseDto,
+  DeleteByIdProfileResponseDto,
+} from './dtos';
 
 const PATH_PREFIX = '/profiles';
+
+const formatDate = (date: Date) => dayjs(date).format('YYYY-MM-DD');
 
 @Controller({
   path: PATH_PREFIX,
@@ -15,23 +24,36 @@ export class ProfilesCrudControllerV1 {
   constructor(private readonly profileModel: ProfileModel) {}
 
   @Get()
-  getMany() {
-    return this.profileModel.getMany({
+  async getMany(): Promise<GetManyProfilesResponseDto> {
+    const profiles = await this.profileModel.getMany({
       order: ProfilesOrderEnum.UpcomingBirthday,
     });
+
+    return profiles.map((profile) => ({
+      id: profile.id,
+      name: profile.name,
+      birthday: formatDate(profile.birthday),
+    }));
   }
 
   @Get(':id')
-  getById(@Param('id') id: string) {
+  async getById(@Param('id') id: string): Promise<GetByIdProfileResponseDto> {
     const uuid = parseUuid(id);
-    return this.profileModel.getById(uuid);
+    const profile = await this.profileModel.getById(uuid);
+
+    return {
+      id: profile.id,
+      name: profile.name,
+      birthday: formatDate(profile.birthday),
+    };
   }
 
   @Post()
-  createOne(@Body() createProfileDto: CreateProfileDto) {
-    const { name, birthday } = createProfileDto;
-
-    return this.profileModel.insertOne({
+  async createOne(
+    @Body() dto: CreateOneProfileRequestDto,
+  ): Promise<CreateOneProfileResponseDto> {
+    const { name, birthday } = dto;
+    await this.profileModel.insertOne({
       name,
       birthday: {
         year: birthday.year,
@@ -42,8 +64,10 @@ export class ProfilesCrudControllerV1 {
   }
 
   @Delete(':id')
-  deleteById(@Param('id') id: string) {
+  async deleteById(
+    @Param('id') id: string,
+  ): Promise<DeleteByIdProfileResponseDto> {
     const uuid = parseUuid(id);
-    return this.profileModel.deleteById(uuid);
+    await this.profileModel.deleteById(uuid);
   }
 }
