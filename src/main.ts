@@ -1,12 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { RequestMethod, VersioningType } from '@nestjs/common';
 
-import { AppModule } from './app.module';
+import { RootModule } from './root.module';
 
 const APP_PORT = 4000;
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(RootModule);
 
   app.enableCors(); // TODO: Configure for production
   app.setGlobalPrefix('/api', {
