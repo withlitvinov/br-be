@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PersonProfile, Prisma } from '@prisma/client';
+import { PersonProfile } from '@prisma/client';
 
 import { DbService, type uuid } from '@/common';
 
@@ -8,90 +8,7 @@ import {
   ProfilesOrderEnum,
   DUMMY_LEAP_YEAR,
 } from '../constants';
-
-const SELECT_PROFILES_IN_UPCOMING_BIRTHDAY_ORDER_SQL = Prisma.sql`WITH
-  modified_person_profiles AS (
-    SELECT
-      *,
-      (
-        CASE
-          WHEN (
-            EXTRACT(
-              MONTH
-              FROM
-                birthday
-            ) > EXTRACT(
-              MONTH
-              FROM
-                CURRENT_DATE
-            )
-          )
-          OR (
-            EXTRACT(
-              MONTH
-              FROM
-                birthday
-            ) = EXTRACT(
-              MONTH
-              FROM
-                CURRENT_DATE
-            )
-            AND EXTRACT(
-              DAY
-              FROM
-                birthday
-            ) >= EXTRACT(
-              DAY
-              FROM
-                CURRENT_DATE
-            )
-          ) THEN MAKE_DATE(
-            EXTRACT(
-              YEAR
-              FROM
-                CURRENT_DATE
-            )::INT,
-            EXTRACT(
-              MONTH
-              FROM
-                birthday
-            )::INT,
-            EXTRACT(
-              DAY
-              FROM
-                birthday
-            )::INT
-          )
-          ELSE MAKE_DATE(
-            EXTRACT(
-              YEAR
-              FROM
-                CURRENT_DATE
-            )::INT + 1,
-            EXTRACT(
-              MONTH
-              FROM
-                birthday
-            )::INT,
-            EXTRACT(
-              DAY
-              FROM
-                birthday
-            )::INT
-          )
-        END
-      ) AS upcoming_birthday
-    FROM
-      person_profiles
-  )
-SELECT
-  id,
-  name,
-  birthday
-FROM
-  modified_person_profiles
-ORDER BY
-  upcoming_birthday ASC;`;
+import * as profileSqlQueries from './profile.sql';
 
 type InsertOnePayload = {
   name: string;
@@ -102,9 +19,9 @@ type InsertOnePayload = {
   };
 };
 
-type GetManyOptions = {
+type GetManyOptions = Partial<{
   order: ProfilesOrderEnum;
-};
+}>;
 
 const padStartNumber = (
   number: number,
@@ -122,20 +39,16 @@ export class ProfileModel {
     options: GetManyOptions = {
       order: ProfilesOrderEnum.NoOrder,
     },
-  ) {
+  ): Promise<PersonProfile[]> {
     if (options.order === ProfilesOrderEnum.UpcomingBirthday) {
-      return this.dbService.$queryRaw<PersonProfile[]>(
-        SELECT_PROFILES_IN_UPCOMING_BIRTHDAY_ORDER_SQL,
+      return this.dbService.$queryRawUnsafe<PersonProfile[]>(
+        profileSqlQueries.upcomingBirthdayOrder(),
       );
     }
 
-    return this.dbService.personProfile.findMany({
-      select: {
-        id: true,
-        name: true,
-        birthday: true,
-      },
-    });
+    return this.dbService.$queryRawUnsafe<PersonProfile[]>(
+      profileSqlQueries.noOrder(),
+    );
   }
 
   getById(id: uuid) {
@@ -145,6 +58,7 @@ export class ProfileModel {
         id: true,
         name: true,
         birthday: true,
+        birthdayMarker: true,
       },
     });
   }

@@ -5,6 +5,11 @@ import { RootModule } from './root.module';
 
 const APP_PORT = 4000;
 
+// Check Intl support
+if (typeof Intl.supportedValuesOf === 'undefined') {
+  throw new Error('Intl.supportedValuesOf() is not supported');
+}
+
 async function bootstrap() {
   const app = await NestFactory.create(RootModule);
 

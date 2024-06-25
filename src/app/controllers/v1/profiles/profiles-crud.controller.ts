@@ -2,7 +2,11 @@ import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import * as dayjs from 'dayjs';
 
 import { ControllerVersionEnum, parseUuid } from '@/common';
-import { ProfileModel, ProfilesOrderEnum } from '@/profiles';
+import {
+  BirthdayMarkerEnum,
+  ProfileModel,
+  ProfilesOrderEnum,
+} from '@/profiles';
 
 import type {
   CreateOneProfileRequestDto,
@@ -14,7 +18,8 @@ import type {
 
 const PATH_PREFIX = '/profiles';
 
-const formatDate = (date: Date) => dayjs(date).format('YYYY-MM-DD');
+const formatDate = (date: Date, isWithoutYear = false) =>
+  dayjs(date).format(isWithoutYear ? 'MM-DD' : 'YYYY-MM-DD');
 
 @Controller({
   path: PATH_PREFIX,
@@ -29,11 +34,17 @@ export class ProfilesCrudControllerV1 {
       order: ProfilesOrderEnum.UpcomingBirthday,
     });
 
-    return profiles.map((profile) => ({
-      id: profile.id,
-      name: profile.name,
-      birthday: formatDate(profile.birthday),
-    }));
+    return profiles.map((profile) => {
+      const isFullBirthday =
+        profile.birthdayMarker === BirthdayMarkerEnum.Standard;
+
+      return {
+        id: profile.id,
+        name: profile.name,
+        birthday: formatDate(profile.birthday, !isFullBirthday),
+        is_full: isFullBirthday,
+      };
+    });
   }
 
   @Get(':id')
@@ -44,7 +55,10 @@ export class ProfilesCrudControllerV1 {
     return {
       id: profile.id,
       name: profile.name,
-      birthday: formatDate(profile.birthday),
+      birthday: formatDate(
+        profile.birthday,
+        profile.birthdayMarker === BirthdayMarkerEnum.WithoutYear,
+      ),
     };
   }
 

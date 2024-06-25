@@ -2,6 +2,7 @@ export type GetManyProfilesResponseDto = {
   id: string;
   name: string;
   birthday: string;
+  is_full: boolean;
 }[];
 
 export type GetByIdProfileResponseDto = {
