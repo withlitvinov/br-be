@@ -1,4 +1,7 @@
 import { Controller, Get, VERSION_NEUTRAL } from '@nestjs/common';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+
+import { NEUTRAL_API_TAGS } from '@/app/constants';
 
 const PATH_PREFIX = '/';
 const WELCOME_MESSAGE =
@@ -8,8 +11,18 @@ const WELCOME_MESSAGE =
   path: PATH_PREFIX,
   version: VERSION_NEUTRAL,
 })
+@ApiTags(NEUTRAL_API_TAGS.ROOT)
 export class RootControllerNeutral {
   @Get()
+  @ApiOperation({
+    summary: 'Welcome message',
+  })
+  @ApiOkResponse({
+    schema: {
+      type: 'string',
+      example: WELCOME_MESSAGE,
+    },
+  })
   welcome() {
     return WELCOME_MESSAGE;
   }

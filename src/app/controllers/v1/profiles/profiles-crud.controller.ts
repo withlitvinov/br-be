@@ -1,19 +1,25 @@
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import {
+  ApiBody,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 import * as dayjs from 'dayjs';
 
-import { ControllerVersionEnum, parseUuid } from '@/common';
+import { ApiVersion, ControllerVersionEnum, parseUuid } from '@/common';
 import {
   BirthdayMarkerEnum,
   ProfileModel,
   ProfilesOrderEnum,
 } from '@/profiles';
+import { V1_API_TAGS } from '@/app/constants';
 
-import type {
+import {
   CreateOneProfileRequestDto,
-  GetManyProfilesResponseDto,
   GetByIdProfileResponseDto,
-  CreateOneProfileResponseDto,
-  DeleteByIdProfileResponseDto,
+  GetManyProfilesResponseDto,
 } from './dtos';
 
 const PATH_PREFIX = '/profiles';
@@ -25,11 +31,19 @@ const formatDate = (date: Date, isWithoutYear = false) =>
   path: PATH_PREFIX,
   version: ControllerVersionEnum.V1,
 })
+@ApiTags(V1_API_TAGS.PROFILE)
+@ApiVersion(ControllerVersionEnum.V1)
 export class ProfilesCrudControllerV1 {
   constructor(private readonly profileModel: ProfileModel) {}
 
   @Get()
-  async getMany(): Promise<GetManyProfilesResponseDto> {
+  @ApiOperation({
+    summary: 'Get profiles',
+  })
+  @ApiOkResponse({
+    type: [GetManyProfilesResponseDto],
+  })
+  async getMany(): Promise<GetManyProfilesResponseDto[]> {
     const profiles = await this.profileModel.getMany({
       order: ProfilesOrderEnum.UpcomingBirthday,
     });
@@ -48,6 +62,16 @@ export class ProfilesCrudControllerV1 {
   }
 
   @Get(':id')
+  @ApiOperation({
+    summary: 'Get profile by id',
+  })
+  @ApiParam({
+    name: 'id',
+    type: 'uuid',
+  })
+  @ApiOkResponse({
+    type: GetByIdProfileResponseDto,
+  })
   async getById(@Param('id') id: string): Promise<GetByIdProfileResponseDto> {
     const uuid = parseUuid(id);
     const profile = await this.profileModel.getById(uuid);
@@ -63,9 +87,13 @@ export class ProfilesCrudControllerV1 {
   }
 
   @Post()
-  async createOne(
-    @Body() dto: CreateOneProfileRequestDto,
-  ): Promise<CreateOneProfileResponseDto> {
+  @ApiOperation({
+    summary: 'Create profile',
+  })
+  @ApiBody({
+    type: CreateOneProfileRequestDto,
+  })
+  async createOne(@Body() dto: CreateOneProfileRequestDto): Promise<void> {
     const { name, birthday } = dto;
     await this.profileModel.insertOne({
       name,
@@ -78,9 +106,14 @@ export class ProfilesCrudControllerV1 {
   }
 
   @Delete(':id')
-  async deleteById(
-    @Param('id') id: string,
-  ): Promise<DeleteByIdProfileResponseDto> {
+  @ApiOperation({
+    summary: 'Delete profile by id',
+  })
+  @ApiParam({
+    name: 'id',
+    type: 'uuid',
+  })
+  async deleteById(@Param('id') id: string): Promise<void> {
     const uuid = parseUuid(id);
     await this.profileModel.deleteById(uuid);
   }
