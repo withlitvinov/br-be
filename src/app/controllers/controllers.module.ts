@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { ProfilesModule } from '@/profiles';
+import { ProfilesModule } from '@/modules/profiles';
 
 import { RootControllerNeutral } from './neutral/root.controller';
 import { ProfilesCrudControllerV1 } from './v1/profiles/profiles-crud.controller';

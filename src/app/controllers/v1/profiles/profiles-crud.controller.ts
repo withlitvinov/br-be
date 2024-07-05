@@ -13,7 +13,7 @@ import {
   BirthdayMarkerEnum,
   ProfileModel,
   ProfilesOrderEnum,
-} from '@/profiles';
+} from '@/modules/profiles';
 import { V1_API_TAGS } from '@/app/constants';
 
 import {
