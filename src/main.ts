@@ -7,6 +7,7 @@ import {
 import { type RouteInfo } from '@nestjs/common/interfaces';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { RedocModule, RedocOptions } from '@jozefazz/nestjs-redoc';
+import * as cookieParser from 'cookie-parser';
 
 import { NEUTRAL_API_TAGS, V1_API_TAGS } from '@/app/constants';
 
@@ -52,6 +53,7 @@ async function bootstrap() {
   const app = await NestFactory.create(RootModule);
 
   app.enableCors(); // TODO: Configure for production
+  app.use(cookieParser());
   app.setGlobalPrefix(GLOBAL_PREFIX, {
     exclude: EXCLUDED_FROM_GLOBAL_PREFIX,
   });
@@ -64,4 +66,5 @@ async function bootstrap() {
 
   await app.listen(APP_PORT, APP_HOST);
 }
+
 bootstrap();
