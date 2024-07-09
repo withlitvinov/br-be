@@ -10,7 +10,6 @@ export type DecodedAccessTokenPayload = BasePayload<AccessTokenPayload>;
 
 export type RefreshTokenPayload = {
   id: string;
-  accessToken: string;
 };
 
 export type DecodedRefreshTokenPayload = BasePayload<RefreshTokenPayload>;
