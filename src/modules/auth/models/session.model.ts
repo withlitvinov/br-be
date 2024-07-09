@@ -8,14 +8,6 @@ import * as sessionModelTypes from './session.model.types';
 export class SessionModel {
   constructor(private readonly dbService: DbService) {}
 
-  findById(id: string) {
-    return this.dbService.session.findUnique({
-      where: {
-        id,
-      },
-    });
-  }
-
   findByRefreshToken(refreshToken: string) {
     return this.dbService.session.findFirst({
       where: {

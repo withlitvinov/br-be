@@ -3,6 +3,7 @@ import {
   Controller,
   HttpCode,
   HttpStatus,
+  Inject,
   Post,
   Res,
   UnauthorizedException,
@@ -15,6 +16,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Response } from 'express';
+import { MurLock } from 'murlock';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 
 import { ControllerVersionEnum, CookieEnum } from '@/common';
 import {
@@ -24,11 +27,18 @@ import {
   RefreshToken,
   CheckRefreshToken,
 } from '@/modules/auth';
+import * as sessionServiceTypes from '@/modules/auth/services/session.service.types';
 
 import { V1_API_TAGS } from '../../../constants';
 import { request, response } from './dtos';
 
 const PATH_PREFIX = '/auth';
+
+const SESSION_TOKENS_LOCK_KEY = 'lock:session_tokens';
+// TODO: Make manageable by environment variables
+const SESSION_TOKENS_TTL = 5 * 1000; // 5 sec
+const getSessionTokensCacheKey = (refreshToken: string) =>
+  `cache:session_tokens:${refreshToken}`;
 
 @Controller({
   path: PATH_PREFIX,
@@ -39,6 +49,7 @@ export class AuthControllerV1 {
   constructor(
     private readonly authService: AuthService,
     private readonly sessionService: SessionService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   @ApiOperation({
@@ -51,7 +62,7 @@ export class AuthControllerV1 {
   @ApiConflictResponse()
   @Public()
   @Post('/register')
-  async register(@Body() dto: request.RegisterDto) {
+  async register(@Body() dto: request.RegisterDto): Promise<void> {
     await this.authService.registerUser({
       name: dto.name,
       email: dto.email,
@@ -91,14 +102,18 @@ export class AuthControllerV1 {
       throw new UnauthorizedException();
     }
 
-    const { accessToken, expiresIn, refreshToken } =
-      await this.sessionService.create(user.id);
+    const { accessToken, accessTokenExpiresIn, refreshToken } =
+      await this.sessionService.createTokens(user.id);
 
-    res.cookie(CookieEnum.RefreshToken, refreshToken, { httpOnly: true });
+    res.cookie(CookieEnum.RefreshToken, refreshToken, {
+      httpOnly: true,
+      sameSite: 'none',
+      secure: true,
+    });
 
     return {
       access_token: accessToken,
-      expires_in: expiresIn,
+      expires_in: accessTokenExpiresIn,
     };
   }
 
@@ -112,8 +127,8 @@ export class AuthControllerV1 {
   async logout(
     @RefreshToken() refreshToken: string,
     @Res({ passthrough: true }) res: Response,
-  ) {
-    await this.sessionService.expire(refreshToken);
+  ): Promise<void> {
+    await this.sessionService.expireSession(refreshToken);
 
     res.clearCookie(CookieEnum.RefreshToken);
   }
@@ -128,19 +143,63 @@ export class AuthControllerV1 {
   @CheckRefreshToken()
   @HttpCode(HttpStatus.OK)
   @Post('/refresh')
+  @MurLock(5000, SESSION_TOKENS_LOCK_KEY, '0')
   async refreshTokens(
     @RefreshToken() refreshToken: string,
     @Res({ passthrough: true }) res: Response,
-  ) {
-    const session = await this.sessionService.refresh(refreshToken);
+  ): Promise<response.RefreshTokenDto> {
+    const sessionTokensCacheKey = getSessionTokensCacheKey(refreshToken);
+
+    const cachedSessionTokens =
+      await this.cacheManager.get<sessionServiceTypes.SessionTokens>(
+        sessionTokensCacheKey,
+      );
+
+    if (cachedSessionTokens) {
+      res.cookie(CookieEnum.RefreshToken, cachedSessionTokens.refreshToken, {
+        httpOnly: true,
+        sameSite: 'none',
+        secure: true,
+      });
+
+      return {
+        access_token: cachedSessionTokens.accessToken,
+        expires_in: cachedSessionTokens.accessTokenExpiresIn,
+      };
+    }
+
+    const sessionUserId = await this.sessionService.expireSession(refreshToken);
+
+    if (!sessionUserId) {
+      throw new UnauthorizedException();
+    }
+
+    const session = await this.sessionService.createTokens(sessionUserId);
+
+    const newSessionTokensCacheKey = getSessionTokensCacheKey(
+      session.refreshToken,
+    );
+
+    await this.cacheManager.set(
+      sessionTokensCacheKey,
+      session,
+      SESSION_TOKENS_TTL,
+    );
+    await this.cacheManager.set(
+      newSessionTokensCacheKey,
+      session,
+      SESSION_TOKENS_TTL,
+    );
 
     res.cookie(CookieEnum.RefreshToken, session.refreshToken, {
       httpOnly: true,
+      sameSite: 'none',
+      secure: true,
     });
 
     return {
       access_token: session.accessToken,
-      expires_in: session.expiresIn,
+      expires_in: session.accessTokenExpiresIn,
     };
   }
 }
