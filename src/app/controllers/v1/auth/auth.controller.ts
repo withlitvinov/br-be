@@ -1,3 +1,4 @@
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import {
   Body,
   Controller,
@@ -17,7 +18,6 @@ import {
 } from '@nestjs/swagger';
 import { CookieOptions, Response } from 'express';
 import { MurLock } from 'murlock';
-import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 
 import { ControllerVersionEnum, CookieEnum } from '@/common';
 import {
@@ -30,6 +30,7 @@ import {
 import * as sessionServiceTypes from '@/modules/auth/services/session.service.types';
 
 import { V1_API_TAGS } from '../../../constants';
+
 import { request, response } from './dtos';
 
 const PATH_PREFIX = '/auth';

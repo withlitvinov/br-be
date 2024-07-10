@@ -1,8 +1,8 @@
+import { CacheModule } from '@nestjs/cache-manager';
 import { Global, Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
-import { MurLockModule } from 'murlock';
-import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
+import { MurLockModule } from 'murlock';
 import { RedisClientOptions } from 'redis';
 
 import { DbService } from './services';

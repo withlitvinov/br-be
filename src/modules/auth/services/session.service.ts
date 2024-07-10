@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { SessionModel } from '../models';
 import { JwtSignerService } from '../services';
+
 import * as sessionServiceTypes from './session.service.types';
 
 @Injectable()

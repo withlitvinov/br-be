@@ -8,6 +8,7 @@ import {
   ProfilesOrderEnum,
   DUMMY_LEAP_YEAR,
 } from '../constants';
+
 import * as profileSqlQueries from './profile.sql';
 
 type InsertOnePayload = {

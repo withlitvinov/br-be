@@ -1,12 +1,13 @@
 import { Controller, Get, Req } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Request } from 'express';
 import * as dayjs from 'dayjs';
+import { Request } from 'express';
 
 import { ControllerVersionEnum } from '@/common';
 import { UsersService } from '@/modules/users';
 
 import { V1_API_TAGS } from '../../../constants';
+
 import { responses } from './dtos';
 
 const PATH_PREFIX = '/my';

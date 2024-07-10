@@ -1,12 +1,12 @@
-import { NestFactory } from '@nestjs/core';
+import { RedocModule, RedocOptions } from '@jozefazz/nestjs-redoc';
 import {
   INestApplication,
   RequestMethod,
   VersioningType,
 } from '@nestjs/common';
 import { type RouteInfo } from '@nestjs/common/interfaces';
+import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { RedocModule, RedocOptions } from '@jozefazz/nestjs-redoc';
 import * as cookieParser from 'cookie-parser';
 
 import { NEUTRAL_API_TAGS, V1_API_TAGS } from '@/app/constants';
