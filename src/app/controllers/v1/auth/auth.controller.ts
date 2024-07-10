@@ -135,7 +135,7 @@ export class AuthControllerV1 {
     summary: 'Logout',
   })
   @Public()
-  @CheckRefreshToken()
+  @CheckRefreshToken() // TODO: Merge with @RefreshToken()
   @HttpCode(HttpStatus.OK)
   @Post('/logout')
   async logout(
@@ -155,7 +155,7 @@ export class AuthControllerV1 {
     type: response.RefreshTokenDto,
   })
   @Public()
-  @CheckRefreshToken()
+  @CheckRefreshToken() // TODO: Merge with @RefreshToken()
   @HttpCode(HttpStatus.OK)
   @Post('/refresh')
   @MurLock(5000, SESSION_TOKENS_LOCK_KEY, '0')
