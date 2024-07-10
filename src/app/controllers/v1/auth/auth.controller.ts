@@ -15,7 +15,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { Response } from 'express';
+import { CookieOptions, Response } from 'express';
 import { MurLock } from 'murlock';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 
@@ -39,6 +39,23 @@ const SESSION_TOKENS_LOCK_KEY = 'lock:session_tokens';
 const SESSION_TOKENS_TTL = 5 * 1000; // 5 sec
 const getSessionTokensCacheKey = (refreshToken: string) =>
   `cache:session_tokens:${refreshToken}`;
+
+const getCookieOptions = (): CookieOptions => {
+  const isDev = process.env.NODE_ENV === 'development';
+
+  const options: CookieOptions = {
+    httpOnly: true,
+    sameSite: 'none',
+    secure: true,
+  };
+
+  if (isDev) {
+    options.sameSite = 'lax';
+    options.secure = false;
+  }
+
+  return options;
+};
 
 @Controller({
   path: PATH_PREFIX,
@@ -105,11 +122,7 @@ export class AuthControllerV1 {
     const { accessToken, accessTokenExpiresIn, refreshToken } =
       await this.sessionService.createTokens(user.id);
 
-    res.cookie(CookieEnum.RefreshToken, refreshToken, {
-      httpOnly: true,
-      sameSite: 'none',
-      secure: true,
-    });
+    res.cookie(CookieEnum.RefreshToken, refreshToken, getCookieOptions());
 
     return {
       access_token: accessToken,
@@ -129,8 +142,9 @@ export class AuthControllerV1 {
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
     await this.sessionService.expireSession(refreshToken);
+    await this.cacheManager.del(getSessionTokensCacheKey(refreshToken));
 
-    res.clearCookie(CookieEnum.RefreshToken);
+    res.clearCookie(CookieEnum.RefreshToken, getCookieOptions());
   }
 
   @ApiOperation({
@@ -156,11 +170,11 @@ export class AuthControllerV1 {
       );
 
     if (cachedSessionTokens) {
-      res.cookie(CookieEnum.RefreshToken, cachedSessionTokens.refreshToken, {
-        httpOnly: true,
-        sameSite: 'none',
-        secure: true,
-      });
+      res.cookie(
+        CookieEnum.RefreshToken,
+        cachedSessionTokens.refreshToken,
+        getCookieOptions(),
+      );
 
       return {
         access_token: cachedSessionTokens.accessToken,
@@ -191,11 +205,11 @@ export class AuthControllerV1 {
       SESSION_TOKENS_TTL,
     );
 
-    res.cookie(CookieEnum.RefreshToken, session.refreshToken, {
-      httpOnly: true,
-      sameSite: 'none',
-      secure: true,
-    });
+    res.cookie(
+      CookieEnum.RefreshToken,
+      session.refreshToken,
+      getCookieOptions(),
+    );
 
     return {
       access_token: session.accessToken,

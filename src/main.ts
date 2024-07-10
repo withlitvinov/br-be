@@ -52,7 +52,10 @@ export async function setupRedoc(app: INestApplication) {
 async function bootstrap() {
   const app = await NestFactory.create(RootModule);
 
-  app.enableCors(); // TODO: Configure for production
+  app.enableCors({
+    credentials: true,
+    origin: ['http://localhost:5173'],
+  }); // TODO: Configure for production
   app.use(cookieParser());
   app.setGlobalPrefix(GLOBAL_PREFIX, {
     exclude: EXCLUDED_FROM_GLOBAL_PREFIX,
