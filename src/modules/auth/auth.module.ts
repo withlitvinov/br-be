@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 
-import { UserModel, SessionModel } from './models';
+import { SessionModel, UserModel } from './models';
 import { AuthService, JwtSignerService, SessionService } from './services';
 import { JwtStrategy } from './strategies';
 

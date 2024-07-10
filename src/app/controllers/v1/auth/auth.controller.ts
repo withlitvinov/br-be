@@ -21,11 +21,11 @@ import { MurLock } from 'murlock';
 
 import { ControllerVersionEnum, CookieEnum } from '@/common';
 import {
-  Public,
   AuthService,
-  SessionService,
-  RefreshToken,
   CheckRefreshToken,
+  Public,
+  RefreshToken,
+  SessionService,
 } from '@/modules/auth';
 import * as sessionServiceTypes from '@/modules/auth/services/session.service.types';
 

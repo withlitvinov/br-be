@@ -5,8 +5,8 @@ import { DbService, type uuid } from '@/common';
 
 import {
   BirthdayMarkerEnum,
-  ProfilesOrderEnum,
   DUMMY_LEAP_YEAR,
+  ProfilesOrderEnum,
 } from '../constants';
 
 import * as profileSqlQueries from './profile.sql';

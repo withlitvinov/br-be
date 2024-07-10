@@ -1,4 +1,4 @@
-import { join, SeparatorEnum } from './common';
+import { SeparatorEnum, join } from './common';
 
 export const where = (condition: string) => `where ${condition}`;
 
