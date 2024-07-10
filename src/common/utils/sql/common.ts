@@ -1,28 +1,28 @@
-export enum SeparatorEnum {
+enum SeparatorEnum {
   CommaSpace = ', ',
   Space = ' ',
   And = ' and ',
   Or = ' or ',
 }
 
-export const join = (values: string[], separator = SeparatorEnum.Space) =>
+const join = (values: string[], separator = SeparatorEnum.Space) =>
   values.join(separator);
 
-export const parens = (expression: string) => `(${expression})`;
+const parens = (expression: string) => `(${expression})`;
 
-export const and = (expressions: string[]) =>
+const and = (expressions: string[]) =>
   parens(join(expressions.map(parens), SeparatorEnum.And));
 
-export const or = (expressions: string[]) =>
+const or = (expressions: string[]) =>
   parens(join(expressions.map(parens), SeparatorEnum.Or));
 
-export const as = (expression: string, name: string) =>
+const as = (expression: string, name: string) =>
   `${parens(expression)} as "${name}"`;
 
-export const makeDate = (year: string, month: string, day: string) =>
+const makeDate = (year: string, month: string, day: string) =>
   `make_date(${join([year, month, day], SeparatorEnum.CommaSpace)})`;
 
-export enum ConditionOperatorEnum {
+enum ConditionOperatorEnum {
   Gt = '>',
   Gte = '>=',
   Lt = '<',
@@ -30,19 +30,29 @@ export enum ConditionOperatorEnum {
   Eq = '=',
 }
 
-export const condition = (
-  lo: string,
-  operator: ConditionOperatorEnum,
-  ro: any,
-) => {
+const condition = (lo: string, operator: ConditionOperatorEnum, ro: any) => {
   return join([lo, operator, ro]);
 };
 
-export enum ExtractOperatorEnum {
+enum ExtractOperatorEnum {
   Year = 'year',
   Month = 'month',
   Day = 'day',
 }
 
-export const extract = (operator: ExtractOperatorEnum, column: string) =>
+const extract = (operator: ExtractOperatorEnum, column: string) =>
   join([operator, 'from', column]);
+
+export {
+  SeparatorEnum,
+  join,
+  parens,
+  and,
+  or,
+  as,
+  makeDate,
+  ConditionOperatorEnum,
+  condition,
+  ExtractOperatorEnum,
+  extract,
+};

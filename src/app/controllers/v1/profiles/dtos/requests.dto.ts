@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class BirthdayDto {
+class BirthdayDto {
   @ApiProperty({
     description: 'A day of birth',
     example: 14,
@@ -21,7 +21,7 @@ export class BirthdayDto {
   year: number | null;
 }
 
-export class CreateOneProfileRequestDto {
+class CreateOneProfileRequestDto {
   @ApiProperty({
     example: 'Garry',
     description: "Person's name",
@@ -31,3 +31,5 @@ export class CreateOneProfileRequestDto {
   @ApiProperty()
   birthday: BirthdayDto;
 }
+
+export { BirthdayDto, CreateOneProfileRequestDto };

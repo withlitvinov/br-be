@@ -52,6 +52,7 @@ module.exports = {
         },
       },
     ],
+    'import/group-exports': 'error',
     'sort-imports': [
       'error',
       {

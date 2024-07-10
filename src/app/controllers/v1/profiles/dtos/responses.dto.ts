@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class GetManyProfilesResponseDto {
+class GetManyProfilesResponseDto {
   @ApiProperty({
     type: 'uuid',
     description: 'Id of the profile',
@@ -29,7 +29,7 @@ export class GetManyProfilesResponseDto {
   is_full: boolean;
 }
 
-export class GetByIdProfileResponseDto {
+class GetByIdProfileResponseDto {
   @ApiProperty({
     description: 'Id of the profile',
     example: 'f537d724-393b-469c-87f5-e6bcd8d601bb',
@@ -48,3 +48,5 @@ export class GetByIdProfileResponseDto {
   })
   birthday: string;
 }
+
+export { GetManyProfilesResponseDto, GetByIdProfileResponseDto };

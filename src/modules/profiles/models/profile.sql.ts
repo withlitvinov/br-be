@@ -1,13 +1,13 @@
 import { sql } from '@/common';
 
-export const noOrder = () => {
+const noOrder = () => {
   return sql.select(
     ['id', 'name', 'birthday', sql.as('birthday_marker', 'birthdayMarker')],
     'person_profiles',
   );
 };
 
-export const upcomingBirthdayOrder = () => {
+const upcomingBirthdayOrder = () => {
   const upcomingBirthday = sql.as(
     sql.$case(
       [
@@ -47,3 +47,5 @@ export const upcomingBirthdayOrder = () => {
     sql.order(sql.ocondition('upcoming_birthday', sql.OrderOperatorEnum.Asc)),
   ]);
 };
+
+export { noOrder, upcomingBirthdayOrder };

@@ -1,8 +1,8 @@
 import { SeparatorEnum, join } from './common';
 
-export const where = (condition: string) => `where ${condition}`;
+const where = (condition: string) => `where ${condition}`;
 
-export enum WhereOperatorEnum {
+enum WhereOperatorEnum {
   Gt = '>',
   Gte = '>=',
   Lt = '<',
@@ -11,7 +11,7 @@ export enum WhereOperatorEnum {
   Btw = 'between',
 }
 
-export const wcondition = (
+const wcondition = (
   column: string,
   operator: WhereOperatorEnum,
   value: any,
@@ -24,3 +24,5 @@ export const wcondition = (
 
   return join([column, operator, value]);
 };
+
+export { where, WhereOperatorEnum, wcondition };
