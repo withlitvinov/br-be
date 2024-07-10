@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 
-import { JwtStrategy } from './strategies';
-import { UserModel, SessionModel } from './models';
+import { SessionModel, UserModel } from './models';
 import { AuthService, JwtSignerService, SessionService } from './services';
+import { JwtStrategy } from './strategies';
 
 const MODELS = [UserModel, SessionModel] as const;
 const SERVICES = [AuthService, SessionService, JwtSignerService] as const;

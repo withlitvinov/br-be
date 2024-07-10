@@ -1,13 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PersonProfile } from '@prisma/client';
 
-import { DbService, type uuid } from '@/common';
+import { DbService } from '@/common';
+import { type uuid } from '@/common';
 
 import {
   BirthdayMarkerEnum,
-  ProfilesOrderEnum,
   DUMMY_LEAP_YEAR,
+  ProfilesOrderEnum,
 } from '../constants';
+
 import * as profileSqlQueries from './profile.sql';
 
 type InsertOnePayload = {

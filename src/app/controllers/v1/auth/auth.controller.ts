@@ -1,3 +1,4 @@
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import {
   Body,
   Controller,
@@ -17,19 +18,19 @@ import {
 } from '@nestjs/swagger';
 import { CookieOptions, Response } from 'express';
 import { MurLock } from 'murlock';
-import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 
 import { ControllerVersionEnum, CookieEnum } from '@/common';
 import {
-  Public,
   AuthService,
-  SessionService,
-  RefreshToken,
   CheckRefreshToken,
+  Public,
+  RefreshToken,
+  SessionService,
 } from '@/modules/auth';
 import * as sessionServiceTypes from '@/modules/auth/services/session.service.types';
 
 import { V1_API_TAGS } from '../../../constants';
+
 import { request, response } from './dtos';
 
 const PATH_PREFIX = '/auth';
@@ -134,7 +135,7 @@ export class AuthControllerV1 {
     summary: 'Logout',
   })
   @Public()
-  @CheckRefreshToken()
+  @CheckRefreshToken() // TODO: Merge with @RefreshToken()
   @HttpCode(HttpStatus.OK)
   @Post('/logout')
   async logout(
@@ -154,7 +155,7 @@ export class AuthControllerV1 {
     type: response.RefreshTokenDto,
   })
   @Public()
-  @CheckRefreshToken()
+  @CheckRefreshToken() // TODO: Merge with @RefreshToken()
   @HttpCode(HttpStatus.OK)
   @Post('/refresh')
   @MurLock(5000, SESSION_TOKENS_LOCK_KEY, '0')

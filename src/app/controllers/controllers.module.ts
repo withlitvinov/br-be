@@ -6,8 +6,8 @@ import { UsersModule } from '@/modules/users';
 
 import { RootControllerNeutral } from './neutral/root.controller';
 import { AuthControllerV1 } from './v1/auth/auth.controller';
-import { ProfilesCrudControllerV1 } from './v1/profiles/profiles-crud.controller';
 import { MyControllerV1 } from './v1/my/my.controller';
+import { ProfilesCrudControllerV1 } from './v1/profiles/profiles-crud.controller';
 
 const NEUTRAL_CONTROLLERS = [RootControllerNeutral];
 const V1_CONTROLLERS = [

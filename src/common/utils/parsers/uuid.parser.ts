@@ -1,6 +1,6 @@
 import { validate, version } from 'uuid';
 
-import type { uuid } from '@/common';
+import { type uuid } from '@/common';
 
 const UUID_VERSION = 4;
 

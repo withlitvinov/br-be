@@ -1,11 +1,13 @@
-export type RegisterUserPayload = {
+type RegisterUserPayload = {
   name: string;
   email: string;
   password: string;
   birthday: string;
 };
 
-export type LoginUserPayload = {
+type LoginUserPayload = {
   email: string;
   password: string;
 };
+
+export type { RegisterUserPayload, LoginUserPayload };

@@ -1,11 +1,13 @@
 import { join } from './common';
 
-export const order = (condition: string) => `order by ${condition}`;
+const order = (condition: string) => `order by ${condition}`;
 
-export enum OrderOperatorEnum {
+enum OrderOperatorEnum {
   Asc = 'asc',
   Desc = 'desc',
 }
 
-export const ocondition = (column: string, operator: OrderOperatorEnum) =>
+const ocondition = (column: string, operator: OrderOperatorEnum) =>
   join([column, operator]);
+
+export { order, OrderOperatorEnum, ocondition };

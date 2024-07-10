@@ -2,14 +2,21 @@ type BasePayload<P> = P & {
   exp: number;
 };
 
-export type AccessTokenPayload = {
+type AccessTokenPayload = {
   id: string;
 };
 
-export type DecodedAccessTokenPayload = BasePayload<AccessTokenPayload>;
+type DecodedAccessTokenPayload = BasePayload<AccessTokenPayload>;
 
-export type RefreshTokenPayload = {
+type RefreshTokenPayload = {
   id: string;
 };
 
-export type DecodedRefreshTokenPayload = BasePayload<RefreshTokenPayload>;
+type DecodedRefreshTokenPayload = BasePayload<RefreshTokenPayload>;
+
+export {
+  AccessTokenPayload,
+  DecodedAccessTokenPayload,
+  RefreshTokenPayload,
+  DecodedRefreshTokenPayload,
+};

@@ -8,13 +8,13 @@ import {
 } from '@nestjs/swagger';
 import * as dayjs from 'dayjs';
 
+import { V1_API_TAGS } from '@/app/constants';
 import { ApiVersion, ControllerVersionEnum, parseUuid } from '@/common';
 import {
   BirthdayMarkerEnum,
   ProfileModel,
   ProfilesOrderEnum,
 } from '@/modules/profiles';
-import { V1_API_TAGS } from '@/app/constants';
 
 import {
   CreateOneProfileRequestDto,
