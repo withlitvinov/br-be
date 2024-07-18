@@ -8,26 +8,29 @@ const noOrder = () => {
 };
 
 const upcomingBirthdayOrder = () => {
+  // TODO: Replace "'Europe/Kiev'" with user's timezone
+  const currentDate = "current_date at time zone 'Europe/Kiev'";
+
   const upcomingBirthday = sql.as(
     sql.$case(
       [
         sql.whenthen(
           sql.or([
-            'extract(month from birthday) > extract(month from current_date)',
+            `extract(month from birthday) > extract(month from ${currentDate})`,
             sql.and([
-              'extract(month from birthday) = extract(month from current_date)',
-              'extract(day from birthday) >= extract(day from current_date)',
+              `extract(month from birthday) = extract(month from ${currentDate})`,
+              `extract(day from birthday) >= extract(day from ${currentDate})`,
             ]),
           ]),
           sql.makeDate(
-            'extract(year from current_date)::int',
+            `extract(year from ${currentDate})::int`,
             'extract(month from birthday)::int',
             'extract(day from birthday)::int',
           ),
         ),
       ],
       sql.makeDate(
-        'extract(year from current_date)::int + 1',
+        `extract(year from ${currentDate})::int + 1`,
         'extract(month from birthday)::int',
         'extract(day from birthday)::int',
       ),
