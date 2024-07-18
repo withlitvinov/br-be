@@ -18,7 +18,7 @@ import { DbService } from './services';
         url: 'redis://localhost:6379',
         password: 'eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81',
       },
-      wait: 20,
+      wait: 500,
       maxAttempts: 3,
       logLevel: 'error',
       ignoreUnlockFail: false,
