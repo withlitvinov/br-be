@@ -3,6 +3,7 @@ type RegisterUserPayload = {
   email: string;
   password: string;
   birthday: string;
+  timeZone: string;
 };
 
 type LoginUserPayload = {

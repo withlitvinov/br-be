@@ -86,6 +86,7 @@ export class AuthControllerV1 {
       email: dto.email,
       password: dto.password,
       birthday: dto.birthday,
+      timeZone: dto.time_zone,
     });
   }
 

@@ -3,4 +3,5 @@ export type CreateUserPayload = {
   email: string;
   password: string;
   birthday: Date;
+  timeZone: string;
 };

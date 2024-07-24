@@ -12,4 +12,7 @@ export class MyDto {
 
   @ApiProperty()
   birthday: string;
+
+  @ApiProperty()
+  time_zone: string;
 }

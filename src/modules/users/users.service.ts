@@ -11,6 +11,9 @@ export class UsersService {
       where: {
         id: userId,
       },
+      include: {
+        config: true,
+      },
     });
   }
 }
