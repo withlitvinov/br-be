@@ -10,29 +10,65 @@ You can find the latest of the IANA database here https://www.iana.org/time-zone
 const TZZI_FILE_PATH = './tools/tzdata.zi';
 const DESTINATION_FILE_PATH = './src/static/zones.json';
 
-const main = async () => {
-  const tzdata = await fs.readFile(TZZI_FILE_PATH, 'utf-8');
-
-  let _tzdata = tzdata.split('\n');
-
-  const [, , version] = _tzdata[0].split(' ');
-
-  // Get all lines with time zone definition
-  _tzdata = _tzdata.filter((line) => line.startsWith('Z'));
+const extractZones = (lines: string[]) => {
+  const zoneDefinitions = lines.filter((def) => def.startsWith('Z'));
 
   const zones: string[] = [];
 
-  for (const line of _tzdata) {
+  for (const line of zoneDefinitions) {
     const [, zone] = line.split(' ');
 
     zones.push(zone);
   }
 
+  return zones;
+};
+
+const extractAliases = (lines: string[]) => {
+  const aliasDefinitions = lines.filter((def) => def.startsWith('L'));
+
+  const aliases: {
+    [zone: string]: string[];
+  } = {};
+
+  for (const line of aliasDefinitions) {
+    const [, zone, alias] = line.split(' ');
+
+    if (!aliases[zone]) {
+      aliases[zone] = [alias];
+    } else {
+      aliases[zone].push(alias);
+    }
+  }
+
+  return aliases;
+};
+
+const mergeZoneWithAliases = (
+  zones: string[],
+  aliases: { [zone: string]: string[] },
+) => {
+  return zones.map((tz) => ({
+    id: tz,
+    aliases: aliases[tz] ?? null,
+  }));
+};
+
+const main = async () => {
+  const tzdata = await fs.readFile(TZZI_FILE_PATH, 'utf-8');
+
+  const _tzdata = tzdata.split('\n');
+
+  const [, , version] = _tzdata[0].split(' ');
+
+  const zones = extractZones(_tzdata);
+  const aliases = extractAliases(_tzdata);
+
   await fs.writeFile(
     DESTINATION_FILE_PATH,
     JSON.stringify({
       version,
-      zones,
+      zones: mergeZoneWithAliases(zones, aliases),
     }),
     'utf-8',
   );

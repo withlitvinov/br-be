@@ -16,23 +16,28 @@ type Zone = {
   utcOffset: number;
 };
 
+type CachedZone = {
+  id: string;
+  aliases: string[] | null;
+};
+
 @Injectable()
 export class TzService {
   private version = '';
-  private timeZones: string[] = [];
+  private cachedZones: CachedZone[] = [];
 
   constructor(private readonly dbService: DbService) {}
 
   private async loadIanaZones() {
-    if (this.timeZones.length > 0) {
-      return this.timeZones;
+    if (this.cachedZones.length > 0) {
+      return this.cachedZones;
     }
 
     const staticZones = JSON.parse(await fs.readFile(ZONES_FILE_PATH, 'utf-8'));
     this.version = staticZones.version;
-    this.timeZones = staticZones.zones;
+    this.cachedZones = staticZones.zones;
 
-    return this.timeZones;
+    return this.cachedZones;
   }
 
   async getTimeZones() {
@@ -42,7 +47,9 @@ export class TzService {
 
     const ianaZones = await this.loadIanaZones();
 
-    const zones = pgZones.filter((tz) => ianaZones.includes(tz.id));
+    const zones = pgZones.filter((pgTz) =>
+      ianaZones.find((tz) => tz.id === pgTz.id),
+    );
 
     let _zones = zones.map(this.parsePgZone);
     _zones = _zones.sort((a, b) => b.utcOffset - a.utcOffset);
@@ -53,7 +60,7 @@ export class TzService {
   async getTimeZone(id: string) {
     const ianaZones = await this.loadIanaZones();
 
-    if (!ianaZones.includes(id)) {
+    if (!ianaZones.find((tz) => tz.id === id)) {
       return null;
     }
 
@@ -62,6 +69,20 @@ export class TzService {
     );
 
     return this.parsePgZone(pgZone);
+  }
+
+  async resolveLeadZone(id: string) {
+    const ianaZones = await this.loadIanaZones();
+
+    for (const zone of ianaZones) {
+      console.log(zone);
+
+      if (zone.id === id || (zone.aliases && zone.aliases.includes(id))) {
+        return zone.id;
+      }
+    }
+
+    return null;
   }
 
   private parsePgZone(pgZone: PgZone): Zone {

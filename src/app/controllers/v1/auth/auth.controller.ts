@@ -1,5 +1,6 @@
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import {
+  BadRequestException,
   Body,
   Controller,
   HttpCode,
@@ -28,6 +29,7 @@ import {
   SessionService,
 } from '@/modules/auth';
 import * as sessionServiceTypes from '@/modules/auth/services/session.service.types';
+import { TzService } from '@/modules/tz';
 
 import { V1_API_TAGS } from '../../../constants';
 
@@ -67,6 +69,7 @@ export class AuthControllerV1 {
   constructor(
     private readonly authService: AuthService,
     private readonly sessionService: SessionService,
+    private readonly tzService: TzService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
@@ -80,13 +83,19 @@ export class AuthControllerV1 {
   @ApiConflictResponse()
   @Public()
   @Post('/register')
-  async register(@Body() dto: request.RegisterDto): Promise<void> {
+  async register(@Body() dto: request.RegisterDto) {
+    const leadTimeZone = await this.tzService.resolveLeadZone(dto.time_zone);
+
+    if (!leadTimeZone) {
+      throw new BadRequestException(`Wrong time zone '${dto.time_zone}'`);
+    }
+
     await this.authService.registerUser({
       name: dto.name,
       email: dto.email,
       password: dto.password,
       birthday: dto.birthday,
-      timeZone: dto.time_zone,
+      timeZone: leadTimeZone,
     });
   }
 
