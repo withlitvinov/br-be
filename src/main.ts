@@ -13,7 +13,7 @@ import { NEUTRAL_API_TAGS, V1_API_TAGS } from '@/app/constants';
 
 import { RootModule } from './root.module';
 
-const APP_PORT = 4000;
+const APP_PORT = 2300;
 const APP_HOST = '127.0.0.1';
 const GLOBAL_PREFIX = '/api';
 const EXCLUDED_FROM_GLOBAL_PREFIX: RouteInfo[] = [

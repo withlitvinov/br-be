@@ -15,7 +15,7 @@ import { DbService } from './services';
     }),
     MurLockModule.forRoot({
       redisOptions: {
-        url: 'redis://localhost:6379',
+        url: 'redis://redis.birthday-reminder-local.orb.local:6379',
         password: 'eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81',
       },
       wait: 500,
@@ -27,7 +27,7 @@ import { DbService } from './services';
     CacheModule.register<RedisClientOptions>({
       store: redisStore,
       socket: {
-        host: 'localhost',
+        host: 'redis.birthday-reminder-local.orb.local',
         port: 6379,
       },
       password: 'eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81',
