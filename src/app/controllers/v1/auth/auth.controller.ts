@@ -11,6 +11,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import {
+  ApiBadRequestResponse,
   ApiBody,
   ApiConflictResponse,
   ApiOkResponse,
@@ -81,6 +82,7 @@ export class AuthControllerV1 {
   })
   @ApiOkResponse()
   @ApiConflictResponse()
+  @ApiBadRequestResponse()
   @Public()
   @Post('/register')
   async register(@Body() dto: request.RegisterDto) {
