@@ -75,8 +75,6 @@ export class TzService {
     const ianaZones = await this.loadIanaZones();
 
     for (const zone of ianaZones) {
-      console.log(zone);
-
       if (zone.id === id || (zone.aliases && zone.aliases.includes(id))) {
         return zone.id;
       }
