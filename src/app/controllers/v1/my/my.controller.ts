@@ -58,12 +58,12 @@ export class MyControllerV1 {
     @DJwtPayload() jwtPayload: JwtPayload,
     @Body() body: requests.UpdateTimeZoneDto,
   ): Promise<void> {
-    const leadTimeZone = await this.tzService.resolveLeadZone(body.time_zone);
+    const leadTz = await this.tzService.resolveLeadZone(body.time_zone);
 
-    if (!leadTimeZone) {
+    if (!leadTz) {
       throw new BadRequestException(`Wrong time zone '${body.time_zone}'`);
     }
 
-    await this.usersService.updateTimeZone(jwtPayload.id, leadTimeZone);
+    await this.usersService.updateTimeZone(jwtPayload.id, leadTz.id);
   }
 }

@@ -86,9 +86,9 @@ export class AuthControllerV1 {
   @Public()
   @Post('/register')
   async register(@Body() dto: request.RegisterDto) {
-    const leadTimeZone = await this.tzService.resolveLeadZone(dto.time_zone);
+    const leadTz = await this.tzService.resolveLeadZone(dto.time_zone);
 
-    if (!leadTimeZone) {
+    if (!leadTz) {
       throw new BadRequestException(`Wrong time zone '${dto.time_zone}'`);
     }
 
@@ -97,7 +97,7 @@ export class AuthControllerV1 {
       email: dto.email,
       password: dto.password,
       birthday: dto.birthday,
-      timeZone: leadTimeZone,
+      timeZone: leadTz.id,
     });
   }
 

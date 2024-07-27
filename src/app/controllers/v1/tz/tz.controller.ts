@@ -3,6 +3,8 @@ import { BadRequestException, Controller, Get, Param } from '@nestjs/common';
 import { ControllerVersionEnum } from '@/common';
 import { TzService } from '@/modules/tz';
 
+import { response } from './dtos';
+
 const PATH_PREFIX = '/tz';
 
 @Controller({
@@ -13,7 +15,7 @@ export class TzControllerV1 {
   constructor(private readonly tzService: TzService) {}
 
   @Get()
-  async allTimeZones() {
+  async allTimeZones(): Promise<response.TZDto[]> {
     const zones = await this.tzService.getTimeZones();
 
     return zones.map((zone) => ({
@@ -23,15 +25,16 @@ export class TzControllerV1 {
   }
 
   @Get('resolve_lead/:id(*)')
-  async resolveLead(@Param('id') id: string) {
-    const leadTimeZone = await this.tzService.resolveLeadZone(id);
+  async resolveLead(@Param('id') id: string): Promise<response.TZDto> {
+    const leadTz = await this.tzService.resolveLeadZone(id);
 
-    if (!leadTimeZone) {
+    if (!leadTz) {
       throw new BadRequestException(`Wrong time zone '${id}'`);
     }
 
     return {
-      id: leadTimeZone,
+      id: leadTz.id,
+      utc_offset: leadTz.utcOffset,
     };
   }
 }
