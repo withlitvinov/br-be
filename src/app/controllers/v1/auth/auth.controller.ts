@@ -22,7 +22,7 @@ import {
 import { CookieOptions, Response } from 'express';
 import { MurLock } from 'murlock';
 
-import { ControllerVersionEnum, CookieEnum } from '@/common';
+import { ApiVersion, ControllerVersionEnum, CookieEnum } from '@/common';
 import {
   AuthService,
   CheckRefreshToken,
@@ -65,6 +65,7 @@ const getCookieOptions = (): CookieOptions => {
   path: PATH_PREFIX,
   version: ControllerVersionEnum.V1,
 })
+@ApiVersion(ControllerVersionEnum.V1)
 @ApiTags(V1_API_TAGS.AUTH)
 export class AuthControllerV1 {
   private sessionTokensTtl = 0;
