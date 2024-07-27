@@ -37,9 +37,9 @@ export class ProfilesCrudControllerV1 {
     summary: 'Get profiles',
   })
   @ApiOkResponse({
-    type: [response.GetManyProfilesResponseDto],
+    type: [response.ProfileDto],
   })
-  async getMany(): Promise<response.GetManyProfilesResponseDto[]> {
+  async getMany(): Promise<response.ProfileDto[]> {
     const profiles = await this.profileModel.getMany({
       order: ProfilesOrderEnum.UpcomingBirthday,
     });
@@ -66,21 +66,19 @@ export class ProfilesCrudControllerV1 {
     type: 'uuid',
   })
   @ApiOkResponse({
-    type: response.GetByIdProfileResponseDto,
+    type: response.ProfileDto,
   })
-  async getById(
-    @Param('id') id: string,
-  ): Promise<response.GetByIdProfileResponseDto> {
+  async getById(@Param('id') id: string): Promise<response.ProfileDto> {
     const uuid = parseUuid(id);
     const profile = await this.profileModel.getById(uuid);
+
+    const isYear = profile.birthdayMarker === BirthdayMarkerEnum.Standard;
 
     return {
       id: profile.id,
       name: profile.name,
-      birthday: formatDate(
-        profile.birthday,
-        profile.birthdayMarker === BirthdayMarkerEnum.WithoutYear,
-      ),
+      birthday: formatDate(profile.birthday, !isYear),
+      is_full: isYear,
     };
   }
 
