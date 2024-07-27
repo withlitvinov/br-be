@@ -16,11 +16,7 @@ import {
   ProfilesOrderEnum,
 } from '@/modules/profiles';
 
-import {
-  CreateOneProfileRequestDto,
-  GetByIdProfileResponseDto,
-  GetManyProfilesResponseDto,
-} from './dtos';
+import { request, response } from './dtos';
 
 const PATH_PREFIX = '/profiles';
 
@@ -33,7 +29,7 @@ const formatDate = (date: Date, isWithoutYear = false) =>
 })
 @ApiTags(V1_API_TAGS.PROFILE)
 @ApiVersion(ControllerVersionEnum.V1)
-export class ProfilesCrudControllerV1 {
+export class ProfilesControllerV1 {
   constructor(private readonly profileModel: ProfileModel) {}
 
   @Get()
@@ -41,9 +37,9 @@ export class ProfilesCrudControllerV1 {
     summary: 'Get profiles',
   })
   @ApiOkResponse({
-    type: [GetManyProfilesResponseDto],
+    type: [response.ProfileDto],
   })
-  async getMany(): Promise<GetManyProfilesResponseDto[]> {
+  async getMany(): Promise<response.ProfileDto[]> {
     const profiles = await this.profileModel.getMany({
       order: ProfilesOrderEnum.UpcomingBirthday,
     });
@@ -70,19 +66,19 @@ export class ProfilesCrudControllerV1 {
     type: 'uuid',
   })
   @ApiOkResponse({
-    type: GetByIdProfileResponseDto,
+    type: response.ProfileDto,
   })
-  async getById(@Param('id') id: string): Promise<GetByIdProfileResponseDto> {
+  async getById(@Param('id') id: string): Promise<response.ProfileDto> {
     const uuid = parseUuid(id);
     const profile = await this.profileModel.getById(uuid);
+
+    const isYear = profile.birthdayMarker === BirthdayMarkerEnum.Standard;
 
     return {
       id: profile.id,
       name: profile.name,
-      birthday: formatDate(
-        profile.birthday,
-        profile.birthdayMarker === BirthdayMarkerEnum.WithoutYear,
-      ),
+      birthday: formatDate(profile.birthday, !isYear),
+      is_full: isYear,
     };
   }
 
@@ -91,17 +87,14 @@ export class ProfilesCrudControllerV1 {
     summary: 'Create profile',
   })
   @ApiBody({
-    type: CreateOneProfileRequestDto,
+    type: request.CreateDto,
   })
-  async createOne(@Body() dto: CreateOneProfileRequestDto): Promise<void> {
+  async createOne(@Body() dto: request.CreateDto): Promise<void> {
     const { name, birthday } = dto;
+
     await this.profileModel.insertOne({
       name,
-      birthday: {
-        year: birthday.year,
-        month: birthday.month,
-        day: birthday.day,
-      },
+      birthday,
     });
   }
 
@@ -115,6 +108,7 @@ export class ProfilesCrudControllerV1 {
   })
   async deleteById(@Param('id') id: string): Promise<void> {
     const uuid = parseUuid(id);
+
     await this.profileModel.deleteById(uuid);
   }
 }
