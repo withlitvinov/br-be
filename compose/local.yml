@@ -1,0 +1,24 @@
+name: 'birthday-reminder-local'
+services:
+  database:
+    image: postgres:16
+    container_name: birthday_reminder_local_database
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      TZ: UTC
+      PGTZ: UTC
+    networks:
+      - birthday-reminder-local
+  redis:
+    image: redis:7
+    container_name: birthday_reminder_local_redis
+    command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    networks:
+      - birthday-reminder-local
+
+networks:
+  birthday-reminder-local:
+    name: birthday_reminder_local
+    driver: bridge

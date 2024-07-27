@@ -12,6 +12,9 @@ class RegisterDto {
 
   @ApiProperty()
   birthday: string;
+
+  @ApiProperty()
+  time_zone: string;
 }
 
 class LoginDto {

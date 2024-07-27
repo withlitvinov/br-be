@@ -1,6 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class MyDto {
+class MyConfigDto {
+  @ApiProperty()
+  time_zone: string;
+}
+
+class MyDto {
   @ApiProperty()
   id: string;
 
@@ -12,4 +17,9 @@ export class MyDto {
 
   @ApiProperty()
   birthday: string;
+
+  @ApiProperty()
+  config: MyConfigDto;
 }
+
+export { MyConfigDto, MyDto };

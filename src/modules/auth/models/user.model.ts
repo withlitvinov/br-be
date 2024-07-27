@@ -15,6 +15,14 @@ export class UserModel {
         email: payload.email,
         password: payload.password,
         birthday: payload.birthday,
+        config: {
+          create: {
+            timeZone: payload.timeZone,
+          },
+        },
+      },
+      include: {
+        config: true,
       },
     });
   }
@@ -24,6 +32,9 @@ export class UserModel {
       where: {
         id,
       },
+      include: {
+        config: true,
+      },
     });
   }
 
@@ -31,6 +42,9 @@ export class UserModel {
     return this.dbService.user.findUnique({
       where: {
         email,
+      },
+      include: {
+        config: true,
       },
     });
   }

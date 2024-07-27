@@ -22,6 +22,7 @@ export class AuthService {
       email: payload.email,
       password: hashedPassword,
       birthday: new Date(payload.birthday),
+      timeZone: payload.timeZone,
     };
 
     return this.userModel.create(_payload);

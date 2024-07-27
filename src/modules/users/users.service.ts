@@ -11,6 +11,27 @@ export class UsersService {
       where: {
         id: userId,
       },
+      include: {
+        config: true,
+      },
+    });
+  }
+
+  async updateTimeZone(userId: string, timeZone: string) {
+    await this.dbService.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        config: {
+          update: {
+            timeZone,
+          },
+        },
+      },
+      select: {
+        id: true,
+      },
     });
   }
 }

@@ -8,14 +8,26 @@ datasource db {
 }
 
 model User {
-  id       String    @id @default(uuid()) @db.Uuid
+  id       String   @id @default(uuid()) @db.Uuid
   name     String
-  email    String    @unique
+  email    String   @unique
   password String
-  birthday DateTime  @db.Date
+  birthday DateTime @db.Date
+
   sessions Session[]
+  config   UserConfig @relation(fields: [configId], references: [id])
+  configId String     @unique @map("config_id") @db.Uuid
 
   @@map("users")
+}
+
+model UserConfig {
+  id       String @id @default(uuid()) @db.Uuid
+  timeZone String @map("time_zone")
+
+  user User?
+
+  @@map("user_configs")
 }
 
 model Session {
