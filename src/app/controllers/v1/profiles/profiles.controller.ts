@@ -29,7 +29,7 @@ const formatDate = (date: Date, isWithoutYear = false) =>
 })
 @ApiTags(V1_API_TAGS.PROFILE)
 @ApiVersion(ControllerVersionEnum.V1)
-export class ProfilesCrudControllerV1 {
+export class ProfilesControllerV1 {
   constructor(private readonly profileModel: ProfileModel) {}
 
   @Get()
