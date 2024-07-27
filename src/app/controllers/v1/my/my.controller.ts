@@ -5,10 +5,15 @@ import {
   Get,
   Patch,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import * as dayjs from 'dayjs';
 
-import { ControllerVersionEnum } from '@/common';
+import { ApiVersion, ControllerVersionEnum } from '@/common';
 import { DJwtPayload, JwtPayload } from '@/modules/auth';
 import { TzService } from '@/modules/tz';
 import { UsersService } from '@/modules/users';
@@ -23,7 +28,8 @@ const PATH_PREFIX = '/my';
   path: PATH_PREFIX,
   version: ControllerVersionEnum.V1,
 })
-@ApiTags(V1_API_TAGS.AUTH)
+@ApiVersion(ControllerVersionEnum.V1)
+@ApiTags(V1_API_TAGS.MY)
 export class MyControllerV1 {
   constructor(
     private readonly usersService: UsersService,
@@ -32,6 +38,9 @@ export class MyControllerV1 {
 
   @ApiOperation({
     summary: "Get logged-in user's details",
+  })
+  @ApiOkResponse({
+    type: responses.MyDto,
   })
   @Get()
   async myDetails(
@@ -53,6 +62,8 @@ export class MyControllerV1 {
   @ApiOperation({
     summary: "Update logged-in user's time zone",
   })
+  @ApiOkResponse()
+  @ApiBadRequestResponse()
   @Patch('time_zone')
   async patchTimeZone(
     @DJwtPayload() jwtPayload: JwtPayload,

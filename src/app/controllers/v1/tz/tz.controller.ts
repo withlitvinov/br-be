@@ -7,7 +7,7 @@ import {
 } from '@nestjs/swagger';
 
 import { V1_API_TAGS } from '@/app/constants';
-import { ControllerVersionEnum } from '@/common';
+import { ApiVersion, ControllerVersionEnum } from '@/common';
 import { TzService } from '@/modules/tz';
 
 import { response } from './dtos';
@@ -18,6 +18,7 @@ const PATH_PREFIX = '/tz';
   path: PATH_PREFIX,
   version: ControllerVersionEnum.V1,
 })
+@ApiVersion(ControllerVersionEnum.V1)
 @ApiTags(V1_API_TAGS.TZ)
 export class TzControllerV1 {
   constructor(private readonly tzService: TzService) {}

@@ -1,21 +1,32 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { NIL } from 'uuid';
 
 class MyConfigDto {
-  @ApiProperty()
+  @ApiProperty({
+    example: 'Europe/London',
+  })
   time_zone: string;
 }
 
 class MyDto {
-  @ApiProperty()
+  @ApiProperty({
+    example: NIL,
+  })
   id: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: 'George Clooney',
+  })
   name: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: 'george.clooney@withlitviniv.com',
+  })
   email: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: '1961-05-06',
+  })
   birthday: string;
 
   @ApiProperty()
