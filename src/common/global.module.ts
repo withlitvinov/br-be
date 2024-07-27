@@ -1,5 +1,6 @@
 import { CacheModule } from '@nestjs/cache-manager';
 import { Global, Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { redisStore } from 'cache-manager-redis-yet';
 import { MurLockModule } from 'murlock';
@@ -10,28 +11,53 @@ import { DbService } from './services';
 @Global()
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     JwtModule.register({
       global: true,
     }),
-    MurLockModule.forRoot({
-      redisOptions: {
-        url: 'redis://redis.birthday-reminder-local.orb.local:6379',
-        password: 'eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81',
+    MurLockModule.forRootAsync({
+      imports: [],
+      useFactory: (configService: ConfigService) => {
+        const host = configService.get('REDIS__HOST');
+        const port = +configService.get('REDIS__PORT');
+        const password = configService.get('REDIS__PASSWORD');
+
+        const wait = +configService.get('LOCK__WAIT');
+        const maxAttempts = +configService.get<number>('LOCK__ATTEMPTS');
+
+        return {
+          redisOptions: {
+            url: `redis://${host}:${port}`,
+            password,
+          },
+          wait,
+          maxAttempts,
+          logLevel: 'error',
+          ignoreUnlockFail: false,
+          lockKeyPrefix: 'custom',
+        };
       },
-      wait: 500,
-      maxAttempts: 3,
-      logLevel: 'error',
-      ignoreUnlockFail: false,
-      lockKeyPrefix: 'custom',
+      inject: [ConfigService],
     }),
-    CacheModule.register<RedisClientOptions>({
-      store: redisStore,
-      socket: {
-        host: 'redis.birthday-reminder-local.orb.local',
-        port: 6379,
-      },
-      password: 'eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81',
+    CacheModule.registerAsync<RedisClientOptions>({
       isGlobal: true,
+      useFactory: (configService: ConfigService) => {
+        const host = configService.get('REDIS__HOST');
+        const port = +configService.get('REDIS__PORT');
+        const password = configService.get('REDIS__PASSWORD');
+
+        return {
+          store: redisStore,
+          socket: {
+            host,
+            port,
+          },
+          password,
+        };
+      },
+      inject: [ConfigService],
     }),
   ],
   providers: [DbService],

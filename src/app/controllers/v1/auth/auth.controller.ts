@@ -10,6 +10,7 @@ import {
   Res,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -39,8 +40,7 @@ import { request, response } from './dtos';
 const PATH_PREFIX = '/auth';
 
 const SESSION_TOKENS_LOCK_KEY = 'lock:session_tokens';
-// TODO: Make manageable by environment variables
-const SESSION_TOKENS_TTL = 5 * 1000; // 5 sec
+
 const getSessionTokensCacheKey = (refreshToken: string) =>
   `cache:session_tokens:${refreshToken}`;
 
@@ -67,12 +67,17 @@ const getCookieOptions = (): CookieOptions => {
 })
 @ApiTags(V1_API_TAGS.AUTH)
 export class AuthControllerV1 {
+  private sessionTokensTtl = 0;
+
   constructor(
+    private configService: ConfigService,
     private readonly authService: AuthService,
     private readonly sessionService: SessionService,
     private readonly tzService: TzService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {}
+  ) {
+    this.sessionTokensTtl = configService.get('SESSION_TOKENS_TTL');
+  }
 
   @ApiOperation({
     summary: 'Register new user',
@@ -210,12 +215,12 @@ export class AuthControllerV1 {
     await this.cacheManager.set(
       sessionTokensCacheKey,
       session,
-      SESSION_TOKENS_TTL,
+      this.sessionTokensTtl,
     );
     await this.cacheManager.set(
       newSessionTokensCacheKey,
       session,
-      SESSION_TOKENS_TTL,
+      this.sessionTokensTtl,
     );
 
     res.cookie(

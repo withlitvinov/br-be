@@ -1,23 +1,20 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-
-import {
-  JWT_ACCESS_TOKEN_EXPIRATION,
-  JWT_ACCESS_TOKEN_SECRET,
-  JWT_REFRESH_TOKEN_EXPIRATION,
-  JWT_REFRESH_TOKEN_SECRET,
-} from '../auth.constants';
 
 import * as jwtSignerServiceTypes from './jwt-signer.service.types';
 
 @Injectable()
 export class JwtSignerService {
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    private configService: ConfigService,
+    private jwtService: JwtService,
+  ) {}
 
   signAccessToken(payload: jwtSignerServiceTypes.AccessTokenPayload) {
     return this.jwtService.signAsync(payload, {
-      expiresIn: JWT_ACCESS_TOKEN_EXPIRATION,
-      secret: JWT_ACCESS_TOKEN_SECRET,
+      expiresIn: this.configService.get('JWT__ACCESS_TOKEN_EXPIRATION'),
+      secret: this.configService.get('JWT__ACCESS_TOKEN_SECRET'),
     });
   }
 
@@ -29,14 +26,14 @@ export class JwtSignerService {
 
   verifyAccessToken(token: string) {
     return this.jwtService.verifyAsync(token, {
-      secret: JWT_ACCESS_TOKEN_SECRET,
+      secret: this.configService.get('JWT__ACCESS_TOKEN_SECRET'),
     });
   }
 
   signRefreshToken(payload: jwtSignerServiceTypes.RefreshTokenPayload) {
     return this.jwtService.signAsync(payload, {
-      expiresIn: JWT_REFRESH_TOKEN_EXPIRATION,
-      secret: JWT_REFRESH_TOKEN_SECRET,
+      expiresIn: this.configService.get('JWT__REFRESH_TOKEN_EXPIRATION'),
+      secret: this.configService.get('JWT__REFRESH_TOKEN_SECRET'),
     });
   }
 
@@ -48,7 +45,7 @@ export class JwtSignerService {
 
   verifyRefreshToken(token: string) {
     return this.jwtService.verifyAsync(token, {
-      secret: JWT_REFRESH_TOKEN_SECRET,
+      secret: this.configService.get('JWT__REFRESH_TOKEN_SECRET'),
     });
   }
 }

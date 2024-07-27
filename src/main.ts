@@ -5,6 +5,7 @@ import {
   VersioningType,
 } from '@nestjs/common';
 import { type RouteInfo } from '@nestjs/common/interfaces';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
@@ -13,8 +14,6 @@ import { NEUTRAL_API_TAGS, V1_API_TAGS } from '@/app/constants';
 
 import { RootModule } from './root.module';
 
-const APP_PORT = 2300;
-const APP_HOST = '127.0.0.1';
 const GLOBAL_PREFIX = '/api';
 const EXCLUDED_FROM_GLOBAL_PREFIX: RouteInfo[] = [
   {
@@ -52,9 +51,15 @@ export async function setupRedoc(app: INestApplication) {
 async function bootstrap() {
   const app = await NestFactory.create(RootModule);
 
+  const configService = app.get(ConfigService);
+
+  const host = configService.get('APP__HOST');
+  const port = +configService.get('APP__PORT');
+  const corsOrigin = configService.get<string>('CORS__ORIGIN').split(',');
+
   app.enableCors({
     credentials: true,
-    origin: ['http://localhost:5173'],
+    origin: corsOrigin,
   }); // TODO: Configure for production
   app.use(cookieParser());
   app.setGlobalPrefix(GLOBAL_PREFIX, {
@@ -67,7 +72,7 @@ async function bootstrap() {
 
   await setupRedoc(app);
 
-  await app.listen(APP_PORT, APP_HOST);
+  await app.listen(port, host);
 }
 
 bootstrap();
