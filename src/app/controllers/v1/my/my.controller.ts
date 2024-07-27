@@ -44,7 +44,9 @@ export class MyControllerV1 {
       name: _user.name,
       email: _user.email,
       birthday: dayjs(_user.birthday).format('YYYY-MM-DD'), // TODO: Extract formatting to utils
-      time_zone: _user.config.timeZone,
+      config: {
+        time_zone: _user.config.timeZone,
+      },
     };
   }
 
