@@ -76,7 +76,7 @@ export class TzService {
 
     for (const zone of ianaZones) {
       if (zone.id === id || (zone.aliases && zone.aliases.includes(id))) {
-        return zone.id;
+        return this.getTimeZone(zone.id);
       }
     }
 
