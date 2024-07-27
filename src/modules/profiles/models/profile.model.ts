@@ -14,11 +14,7 @@ import * as profileSqlQueries from './profile.sql';
 
 type InsertOnePayload = {
   name: string;
-  birthday: {
-    year: number | null;
-    month: number;
-    day: number;
-  };
+  birthday: string;
 };
 
 type GetManyOptions = Partial<{
@@ -66,10 +62,13 @@ export class ProfileModel {
   }
 
   insertOne(payload: InsertOnePayload) {
+    const [y, m, d] = payload.birthday.split('-');
+
+    const isYear = y !== '####';
     const birthday = new Date(
-      `${payload.birthday.year ? payload.birthday.year : DUMMY_LEAP_YEAR}-${padStartNumber(payload.birthday.month)}-${padStartNumber(payload.birthday.day)}`,
+      `${isYear ? y : DUMMY_LEAP_YEAR}-${padStartNumber(+m)}-${padStartNumber(+d)}`,
     );
-    const birthdayMarker = payload.birthday.year
+    const birthdayMarker = isYear
       ? BirthdayMarkerEnum.Standard
       : BirthdayMarkerEnum.WithoutYear;
 
