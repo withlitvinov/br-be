@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 
-import { ProfileModel } from './models';
+import { ProfilesService } from './profiles.service';
 
 @Module({
-  providers: [ProfileModel],
-  exports: [ProfileModel],
+  providers: [ProfilesService],
+  exports: [ProfilesService],
 })
 export class ProfilesModule {}

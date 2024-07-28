@@ -1,6 +1,6 @@
 import { sqlUtils } from '@/common/utils';
 
-const noOrder = () => {
+const simple = () => {
   const qb = sqlUtils.getQueryBuilder();
 
   return qb
@@ -13,7 +13,7 @@ type UpcomingOptions = {
   tz: string;
 };
 
-const upcomingBirthdayOrder = (options: UpcomingOptions) => {
+const upcoming = (options: UpcomingOptions) => {
   const { tz } = options;
 
   const qb = sqlUtils.getQueryBuilder();
@@ -39,4 +39,4 @@ const upcomingBirthdayOrder = (options: UpcomingOptions) => {
     .toQuery();
 };
 
-export { noOrder, upcomingBirthdayOrder };
+export { simple, upcoming };
