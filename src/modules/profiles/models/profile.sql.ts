@@ -1,11 +1,7 @@
-import Knex from 'knex';
-
-const getQueryBuilder = () => {
-  return Knex({ client: 'pg' });
-};
+import { sqlUtils } from '@/common/utils';
 
 const noOrder = () => {
-  const qb = getQueryBuilder();
+  const qb = sqlUtils.getQueryBuilder();
 
   return qb
     .select(['id', 'name', 'birthday', 'birthday_marker as birthdayMarker'])
@@ -20,11 +16,11 @@ type UpcomingOptions = {
 const upcomingBirthdayOrder = (options: UpcomingOptions) => {
   const { tz } = options;
 
-  const qb = getQueryBuilder();
+  const qb = sqlUtils.getQueryBuilder();
 
   const currentDateWithTz = `current_date at time zone '${tz}'`;
 
-  const query = qb
+  return qb
     .with('profiles_with_upcoming_birthday', (_qb) => {
       _qb
         .select([
@@ -39,9 +35,8 @@ const upcomingBirthdayOrder = (options: UpcomingOptions) => {
     })
     .select(['id', 'name', 'birthday', 'birthday_marker as birthdayMarker'])
     .from('profiles_with_upcoming_birthday')
-    .orderBy('upcoming_birthday', 'asc');
-
-  return query.toQuery();
+    .orderBy('upcoming_birthday', 'asc')
+    .toQuery();
 };
 
 export { noOrder, upcomingBirthdayOrder };
