@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -19,11 +18,13 @@ import * as dayjs from 'dayjs';
 
 import { V1_API_TAGS } from '@/app/constants';
 import { ApiVersion, ControllerVersionEnum, parseUuid } from '@/common';
+import { DJwtPayload, JwtPayload } from '@/modules/auth';
 import {
   BirthdayMarkerEnum,
   ProfileModel,
   ProfilesOrderEnum,
 } from '@/modules/profiles';
+import { UsersService } from '@/modules/users';
 
 import { request, response } from './dtos';
 
@@ -39,7 +40,10 @@ const formatDate = (date: Date, isWithoutYear = false) =>
 @ApiTags(V1_API_TAGS.PROFILE)
 @ApiVersion(ControllerVersionEnum.V1)
 export class ProfilesControllerV1 {
-  constructor(private readonly profileModel: ProfileModel) {}
+  constructor(
+    private userService: UsersService,
+    private readonly profileModel: ProfileModel,
+  ) {}
 
   @Get()
   @ApiOperation({
@@ -48,9 +52,14 @@ export class ProfilesControllerV1 {
   @ApiOkResponse({
     type: [response.ProfileDto],
   })
-  async getMany(): Promise<response.ProfileDto[]> {
+  async getMany(
+    @DJwtPayload() jwtPayload: JwtPayload,
+  ): Promise<response.ProfileDto[]> {
+    const userTz = await this.userService.getTimeZone(jwtPayload.id);
+
     const profiles = await this.profileModel.getMany({
       order: ProfilesOrderEnum.UpcomingBirthday,
+      tz: userTz ?? undefined,
     });
 
     return profiles.map((profile) => {

@@ -1,54 +1,47 @@
-import { sql } from '@/common';
+import Knex from 'knex';
 
-const noOrder = () => {
-  return sql.select(
-    ['id', 'name', 'birthday', sql.as('birthday_marker', 'birthdayMarker')],
-    'person_profiles',
-  );
+const getQueryBuilder = () => {
+  return Knex({ client: 'pg' });
 };
 
-const upcomingBirthdayOrder = () => {
-  // TODO: Replace "'Europe/Kiev'" with user's timezone
-  const currentDate = "current_date at time zone 'Europe/Kiev'";
+const noOrder = () => {
+  const qb = getQueryBuilder();
 
-  const upcomingBirthday = sql.as(
-    sql.$case(
-      [
-        sql.whenthen(
-          sql.or([
-            `extract(month from birthday) > extract(month from ${currentDate})`,
-            sql.and([
-              `extract(month from birthday) = extract(month from ${currentDate})`,
-              `extract(day from birthday) >= extract(day from ${currentDate})`,
-            ]),
-          ]),
-          sql.makeDate(
-            `extract(year from ${currentDate})::int`,
-            'extract(month from birthday)::int',
-            'extract(day from birthday)::int',
+  return qb
+    .select(['id', 'name', 'birthday', 'birthday_marker as birthdayMarker'])
+    .from('person_profiles')
+    .toQuery();
+};
+
+type UpcomingOptions = {
+  tz: string;
+};
+
+const upcomingBirthdayOrder = (options: UpcomingOptions) => {
+  const { tz } = options;
+
+  const qb = getQueryBuilder();
+
+  const currentDateWithTz = `current_date at time zone '${tz}'`;
+
+  const query = qb
+    .with('profiles_with_upcoming_birthday', (_qb) => {
+      _qb
+        .select([
+          '*',
+          // Constructs a date based on the current year. If the profile's birthday has already occurred this year,
+          // the date will be set to the next year.
+          qb.raw(
+            `CASE WHEN EXTRACT(MONTH FROM birthday) > EXTRACT(MONTH FROM ${currentDateWithTz}) OR (EXTRACT(MONTH FROM birthday) = EXTRACT(MONTH FROM ${currentDateWithTz}) AND EXTRACT(DAY FROM birthday) >= EXTRACT(DAY FROM ${currentDateWithTz})) THEN MAKE_DATE(EXTRACT(YEAR FROM ${currentDateWithTz})::int, EXTRACT(MONTH FROM birthday)::int, EXTRACT(DAY FROM birthday)::int) ELSE MAKE_DATE(EXTRACT(YEAR FROM ${currentDateWithTz})::int + 1, EXTRACT(MONTH FROM birthday)::int, EXTRACT(DAY FROM birthday)::int) END as upcoming_birthday`,
           ),
-        ),
-      ],
-      sql.makeDate(
-        `extract(year from ${currentDate})::int + 1`,
-        'extract(month from birthday)::int',
-        'extract(day from birthday)::int',
-      ),
-    ),
-    'upcoming_birthday',
-  );
+        ])
+        .from('person_profiles');
+    })
+    .select(['id', 'name', 'birthday', 'birthday_marker as birthdayMarker'])
+    .from('profiles_with_upcoming_birthday')
+    .orderBy('upcoming_birthday', 'asc');
 
-  return sql.join([
-    sql.cte(
-      'profiles_with_upcoming_birthday',
-      sql.select(['*', upcomingBirthday], 'person_profiles'),
-    ),
-    sql.select(
-      ['id', 'name', 'birthday', sql.as('birthday_marker', 'birthdayMarker')],
-      'profiles_with_upcoming_birthday',
-    ),
-    sql.order(sql.ocondition('upcoming_birthday', sql.OrderOperatorEnum.Asc)),
-  ]);
+  return query.toQuery();
 };
 
 export { noOrder, upcomingBirthdayOrder };
