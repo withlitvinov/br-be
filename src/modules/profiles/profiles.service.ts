@@ -3,22 +3,23 @@ import { PersonProfile } from '@prisma/client';
 
 import { DbService } from '@/common';
 import { type uuid } from '@/common';
+import { DEFAULT_TIME_ZONE } from '@/modules/tz/costants';
 
 import {
   BirthdayMarkerEnum,
   DUMMY_LEAP_YEAR,
   ProfilesOrderEnum,
-} from '../constants';
+} from './constants';
+import { profilesSql } from './sql';
 
-import * as profileSqlQueries from './profile.sql';
-
-type InsertOnePayload = {
+type RawProfile = {
   name: string;
   birthday: string;
 };
 
 type GetManyOptions = Partial<{
   order: ProfilesOrderEnum;
+  tz: string;
 }>;
 
 const padStartNumber = (
@@ -30,26 +31,27 @@ const padStartNumber = (
 };
 
 @Injectable()
-export class ProfileModel {
+export class ProfilesService {
   constructor(private readonly dbService: DbService) {}
 
-  getMany(
-    options: GetManyOptions = {
-      order: ProfilesOrderEnum.NoOrder,
-    },
-  ): Promise<PersonProfile[]> {
-    if (options.order === ProfilesOrderEnum.UpcomingBirthday) {
+  getMany(options: GetManyOptions = {}): Promise<PersonProfile[]> {
+    const { order = ProfilesOrderEnum.Simple, tz = DEFAULT_TIME_ZONE } =
+      options;
+
+    if (order === ProfilesOrderEnum.Upcoming) {
       return this.dbService.$queryRawUnsafe<PersonProfile[]>(
-        profileSqlQueries.upcomingBirthdayOrder(),
+        profilesSql.upcoming({
+          tz,
+        }),
       );
     }
 
     return this.dbService.$queryRawUnsafe<PersonProfile[]>(
-      profileSqlQueries.noOrder(),
+      profilesSql.simple(),
     );
   }
 
-  getById(id: uuid) {
+  get(id: uuid) {
     return this.dbService.personProfile.findUnique({
       where: { id },
       select: {
@@ -61,8 +63,8 @@ export class ProfileModel {
     });
   }
 
-  insertOne(payload: InsertOnePayload) {
-    const [y, m, d] = payload.birthday.split('-');
+  create(data: RawProfile) {
+    const [y, m, d] = data.birthday.split('-');
 
     const isYear = y !== '####';
     const birthday = new Date(
@@ -74,7 +76,7 @@ export class ProfileModel {
 
     return this.dbService.personProfile.create({
       data: {
-        name: payload.name,
+        name: data.name,
         birthday,
         birthdayMarker,
       },
@@ -86,7 +88,7 @@ export class ProfileModel {
     });
   }
 
-  deleteById(id: uuid) {
+  delete(id: uuid) {
     return this.dbService.personProfile.delete({
       where: {
         id,

@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -19,11 +18,13 @@ import * as dayjs from 'dayjs';
 
 import { V1_API_TAGS } from '@/app/constants';
 import { ApiVersion, ControllerVersionEnum, parseUuid } from '@/common';
+import { DJwtPayload, JwtPayload } from '@/modules/auth';
 import {
   BirthdayMarkerEnum,
-  ProfileModel,
   ProfilesOrderEnum,
+  ProfilesService,
 } from '@/modules/profiles';
+import { UsersService } from '@/modules/users';
 
 import { request, response } from './dtos';
 
@@ -39,7 +40,10 @@ const formatDate = (date: Date, isWithoutYear = false) =>
 @ApiTags(V1_API_TAGS.PROFILE)
 @ApiVersion(ControllerVersionEnum.V1)
 export class ProfilesControllerV1 {
-  constructor(private readonly profileModel: ProfileModel) {}
+  constructor(
+    private usersService: UsersService,
+    private profilesService: ProfilesService,
+  ) {}
 
   @Get()
   @ApiOperation({
@@ -48,9 +52,14 @@ export class ProfilesControllerV1 {
   @ApiOkResponse({
     type: [response.ProfileDto],
   })
-  async getMany(): Promise<response.ProfileDto[]> {
-    const profiles = await this.profileModel.getMany({
-      order: ProfilesOrderEnum.UpcomingBirthday,
+  async getMany(
+    @DJwtPayload() jwtPayload: JwtPayload,
+  ): Promise<response.ProfileDto[]> {
+    const userTz = await this.usersService.getTimeZone(jwtPayload.id);
+
+    const profiles = await this.profilesService.getMany({
+      order: ProfilesOrderEnum.Upcoming,
+      tz: userTz ?? undefined,
     });
 
     return profiles.map((profile) => {
@@ -79,7 +88,7 @@ export class ProfilesControllerV1 {
   })
   async getById(@Param('id') id: string): Promise<response.ProfileDto> {
     const uuid = parseUuid(id);
-    const profile = await this.profileModel.getById(uuid);
+    const profile = await this.profilesService.get(uuid);
 
     if (!profile) {
       throw new NotFoundException();
@@ -105,7 +114,7 @@ export class ProfilesControllerV1 {
   async createOne(@Body() dto: request.CreateDto): Promise<void> {
     const { name, birthday } = dto;
 
-    await this.profileModel.insertOne({
+    await this.profilesService.create({
       name,
       birthday,
     });
@@ -122,6 +131,6 @@ export class ProfilesControllerV1 {
   async deleteById(@Param('id') id: string): Promise<void> {
     const uuid = parseUuid(id);
 
-    await this.profileModel.deleteById(uuid);
+    await this.profilesService.delete(uuid);
   }
 }

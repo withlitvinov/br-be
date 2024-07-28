@@ -1,2 +1,3 @@
 export * from './parsers';
-export * as sql from './sql';
+export * as sqlUtils from './sql.utils';
+export * as devUtils from './dev.utils';

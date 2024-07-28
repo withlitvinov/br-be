@@ -17,6 +17,27 @@ export class UsersService {
     });
   }
 
+  async getTimeZone(userId: string) {
+    const user = await this.dbService.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        config: {
+          select: {
+            timeZone: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    return user.config.timeZone;
+  }
+
   async updateTimeZone(userId: string, timeZone: string) {
     await this.dbService.user.update({
       where: {

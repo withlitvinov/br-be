@@ -4,8 +4,8 @@ enum BirthdayMarkerEnum {
 }
 
 enum ProfilesOrderEnum {
-  NoOrder = 0,
-  UpcomingBirthday = 1,
+  Simple = 0,
+  Upcoming = 1,
 }
 
 const DUMMY_LEAP_YEAR = 1200;
