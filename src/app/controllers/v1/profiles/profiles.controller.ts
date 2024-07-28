@@ -1,4 +1,13 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  NotFoundException,
+  Param,
+  Post,
+} from '@nestjs/common';
 import {
   ApiBody,
   ApiOkResponse,
@@ -71,6 +80,10 @@ export class ProfilesControllerV1 {
   async getById(@Param('id') id: string): Promise<response.ProfileDto> {
     const uuid = parseUuid(id);
     const profile = await this.profileModel.getById(uuid);
+
+    if (!profile) {
+      throw new NotFoundException();
+    }
 
     const isYear = profile.birthdayMarker === BirthdayMarkerEnum.Standard;
 
