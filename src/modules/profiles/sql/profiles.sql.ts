@@ -18,7 +18,7 @@ const upcoming = (options: UpcomingOptions) => {
 
   const qb = sqlUtils.getQueryBuilder();
 
-  const currentDateWithTz = `current_date at time zone '${tz}'`;
+  const currentDateWithTz = `current_timestamp at time zone '${tz}'`;
 
   return qb
     .with('profiles_with_upcoming_birthday', (_qb) => {
