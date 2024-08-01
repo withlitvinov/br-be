@@ -38,6 +38,17 @@ export class UsersService {
     return user.config.timeZone;
   }
 
+  async updateName(userId: string, name: string) {
+    await this.dbService.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        name,
+      },
+    });
+  }
+
   async updateTimeZone(userId: string, timeZone: string) {
     await this.dbService.user.update({
       where: {
@@ -49,9 +60,6 @@ export class UsersService {
             timeZone,
           },
         },
-      },
-      select: {
-        id: true,
       },
     });
   }

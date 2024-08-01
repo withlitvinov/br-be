@@ -10,6 +10,7 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import * as dayjs from 'dayjs';
 
@@ -42,6 +43,7 @@ export class MyControllerV1 {
   @ApiOkResponse({
     type: responses.MyDto,
   })
+  @ApiUnauthorizedResponse()
   @Get()
   async myDetails(
     @DJwtPayload() jwtPayload: JwtPayload,
@@ -60,14 +62,28 @@ export class MyControllerV1 {
   }
 
   @ApiOperation({
+    summary: "Patch logged-in user's name",
+  })
+  @ApiOkResponse()
+  @ApiUnauthorizedResponse()
+  @Patch('name')
+  async patchName(
+    @DJwtPayload() jwtPayload: JwtPayload,
+    @Body() body: requests.PatchNameDto,
+  ): Promise<void> {
+    await this.usersService.updateName(jwtPayload.id, body.name);
+  }
+
+  @ApiOperation({
     summary: "Update logged-in user's time zone",
   })
   @ApiOkResponse()
   @ApiBadRequestResponse()
+  @ApiUnauthorizedResponse()
   @Patch('time_zone')
   async patchTimeZone(
     @DJwtPayload() jwtPayload: JwtPayload,
-    @Body() body: requests.UpdateTimeZoneDto,
+    @Body() body: requests.PatchTimeZoneDto,
   ): Promise<void> {
     const leadTz = await this.tzService.resolveLeadZone(body.time_zone);
 

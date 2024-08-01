@@ -1,6 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class UpdateTimeZoneDto {
+class PatchNameDto {
+  @ApiProperty()
+  name: string;
+}
+
+class PatchTimeZoneDto {
   @ApiProperty()
   time_zone: string;
 }
+
+export { PatchNameDto, PatchTimeZoneDto };
