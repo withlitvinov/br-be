@@ -65,7 +65,7 @@ export class TzService {
     }
 
     const [pgZone] = await this.dbService.$queryRawUnsafe<PgZone[]>(
-      `select name as id, utc_offset::text from pg_timezone_names where id = '${id}'`,
+      `select name as id, utc_offset::text from pg_timezone_names where name = '${id}'`,
     );
 
     return this.parsePgZone(pgZone);
