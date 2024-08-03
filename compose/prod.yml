@@ -7,6 +7,8 @@ services:
       - ../.envs/.postgres.env
     ports:
       - "5432:5432"
+    volumes:
+      - pgvolume:/var/lib/postgresql/data
   redis:
     image: redis:7
     container_name: br_prod_redis
@@ -15,3 +17,6 @@ services:
     command: sh -c 'redis-server --save 20 1 --loglevel warning --requirepass $$REDIS_PASSWORD'
     ports:
       - "6379:6379"
+
+volumes:
+  pgvolume:
