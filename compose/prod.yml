@@ -1,0 +1,13 @@
+name: 'br-prod'
+services:
+  database:
+    image: postgres:16
+    container_name: br_prod_database
+    env_file:
+      - ../.envs/.postgres.env
+  redis:
+    image: redis:7
+    container_name: br_prod_redis
+    env_file:
+      - ../.envs/.redis.env
+    command: redis-server --save 20 1 --loglevel warning --requirepass $${REDIS_PASSWORD}
