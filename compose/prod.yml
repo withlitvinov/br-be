@@ -12,6 +12,6 @@ services:
     container_name: br_prod_redis
     env_file:
       - ../.envs/.redis.env
-    command: redis-server --save 20 1 --loglevel warning --requirepass $${REDIS_PASSWORD}
+    command: sh -c 'redis-server --save 20 1 --loglevel warning --requirepass $$REDIS_PASSWORD'
     ports:
       - "6379:6379"
