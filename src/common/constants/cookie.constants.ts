@@ -1,3 +1,3 @@
 export enum CookieEnum {
-  RefreshToken = 'refreshToken',
+  RefreshToken = 'RT',
 }

@@ -21,6 +21,13 @@ import {
 } from '@nestjs/swagger';
 import { CookieOptions, Response } from 'express';
 import { MurLock } from 'murlock';
+import * as dayjs from 'dayjs';
+import * as utc from 'dayjs/plugin/utc';
+import * as tz from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(tz);
+dayjs.tz.setDefault('Etc/GMT');
 
 import { ApiVersion, ControllerVersionEnum, CookieEnum } from '@/common';
 import {
@@ -44,13 +51,14 @@ const SESSION_TOKENS_LOCK_KEY = 'lock:session_tokens';
 const getSessionTokensCacheKey = (refreshToken: string) =>
   `cache:session_tokens:${refreshToken}`;
 
-const getCookieOptions = (): CookieOptions => {
+const getCookieOptions = (expires?: Date): CookieOptions => {
   const isDev = process.env.NODE_ENV === 'development';
 
   const options: CookieOptions = {
     httpOnly: true,
     sameSite: 'none',
     secure: true,
+    expires,
   };
 
   if (isDev) {
@@ -60,6 +68,9 @@ const getCookieOptions = (): CookieOptions => {
 
   return options;
 };
+
+const getRefreshCookieOptions = () =>
+  getCookieOptions(dayjs().tz().add(400, 'days').toDate());
 
 @Controller({
   path: PATH_PREFIX,
@@ -141,7 +152,11 @@ export class AuthControllerV1 {
     const { accessToken, accessTokenExpiresIn, refreshToken } =
       await this.sessionService.createTokens(user.id);
 
-    res.cookie(CookieEnum.RefreshToken, refreshToken, getCookieOptions());
+    res.cookie(
+      CookieEnum.RefreshToken,
+      refreshToken,
+      getRefreshCookieOptions(),
+    );
 
     return {
       access_token: accessToken,
@@ -163,7 +178,7 @@ export class AuthControllerV1 {
     await this.sessionService.expireSession(refreshToken);
     await this.cacheManager.del(getSessionTokensCacheKey(refreshToken));
 
-    res.clearCookie(CookieEnum.RefreshToken, getCookieOptions());
+    res.clearCookie(CookieEnum.RefreshToken);
   }
 
   @ApiOperation({
@@ -192,7 +207,7 @@ export class AuthControllerV1 {
       res.cookie(
         CookieEnum.RefreshToken,
         cachedSessionTokens.refreshToken,
-        getCookieOptions(),
+        getRefreshCookieOptions(),
       );
 
       return {
@@ -227,7 +242,7 @@ export class AuthControllerV1 {
     res.cookie(
       CookieEnum.RefreshToken,
       session.refreshToken,
-      getCookieOptions(),
+      getRefreshCookieOptions(),
     );
 
     return {
