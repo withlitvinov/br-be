@@ -29,7 +29,7 @@
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.3.10",
     "@nestjs/swagger": "^7.4.0",
-    "@prisma/client": "5.17.0",
+    "@prisma/client": "5.18.0",
     "argon2": "^0.40.3",
     "cache-manager": "^5.7.1",
     "cache-manager-redis-yet": "^5.1.2",
