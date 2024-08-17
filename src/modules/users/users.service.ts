@@ -17,6 +17,11 @@ export class UsersService {
     });
   }
 
+  /**
+   * Get user's time zone
+   *
+   * @param userId
+   */
   async getTimeZone(userId: string) {
     const user = await this.dbService.user.findUnique({
       where: {

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -17,8 +18,8 @@ import {
 import * as dayjs from 'dayjs';
 
 import { V1_API_TAGS } from '@/app/constants';
-import { ApiVersion, ControllerVersionEnum, parseUuid } from '@/common';
-import { DJwtPayload, JwtPayload } from '@/modules/auth';
+import { ApiVersion, ControllerVersionEnum, uuidUtils } from '@/common';
+import { AuthorizedId } from '@/modules/auth';
 import {
   BirthdayMarkerEnum,
   ProfilesOrderEnum,
@@ -53,11 +54,12 @@ export class ProfilesControllerV1 {
     type: [response.ProfileDto],
   })
   async getMany(
-    @DJwtPayload() jwtPayload: JwtPayload,
+    @AuthorizedId() authorizedId: string,
   ): Promise<response.ProfileDto[]> {
-    const userTz = await this.usersService.getTimeZone(jwtPayload.id);
+    const userTz = await this.usersService.getTimeZone(authorizedId);
 
     const profiles = await this.profilesService.getMany({
+      userId: authorizedId,
       order: ProfilesOrderEnum.Upcoming,
       tz: userTz ?? undefined,
     });
@@ -86,14 +88,24 @@ export class ProfilesControllerV1 {
   @ApiOkResponse({
     type: response.ProfileDto,
   })
-  async getById(@Param('id') id: string): Promise<response.ProfileDto> {
-    const uuid = parseUuid(id);
-    const profile = await this.profilesService.get(uuid);
+  async getById(
+    @AuthorizedId() authorizedId: string,
+    @Param('id') id: string,
+  ): Promise<response.ProfileDto> {
+    if (!uuidUtils.isValidUuid(id)) {
+      throw new BadRequestException();
+    }
 
-    if (!profile) {
+    const isBelongToUser = await this.profilesService.isBelongToUser(
+      id,
+      authorizedId,
+    );
+
+    if (!isBelongToUser) {
       throw new NotFoundException();
     }
 
+    const profile = await this.profilesService.get(id);
     const isYear = profile.birthdayMarker === BirthdayMarkerEnum.Standard;
 
     return {
@@ -111,10 +123,13 @@ export class ProfilesControllerV1 {
   @ApiBody({
     type: request.CreateDto,
   })
-  async createOne(@Body() dto: request.CreateDto): Promise<void> {
+  async createOne(
+    @AuthorizedId() authorizedId: string,
+    @Body() dto: request.CreateDto,
+  ): Promise<void> {
     const { name, birthday } = dto;
 
-    await this.profilesService.create({
+    await this.profilesService.create(authorizedId, {
       name,
       birthday,
     });
@@ -128,9 +143,23 @@ export class ProfilesControllerV1 {
     name: 'id',
     type: 'uuid',
   })
-  async deleteById(@Param('id') id: string): Promise<void> {
-    const uuid = parseUuid(id);
+  async deleteById(
+    @AuthorizedId() authorizedId: string,
+    @Param('id') id: string,
+  ): Promise<void> {
+    if (!uuidUtils.isValidUuid(id)) {
+      throw new BadRequestException();
+    }
 
-    await this.profilesService.delete(uuid);
+    const isBelongToUser = await this.profilesService.isBelongToUser(
+      id,
+      authorizedId,
+    );
+
+    if (!isBelongToUser) {
+      throw new NotFoundException();
+    }
+
+    await this.profilesService.delete(id);
   }
 }
