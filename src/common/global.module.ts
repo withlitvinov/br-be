@@ -2,6 +2,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { ScheduleModule } from '@nestjs/schedule';
 import { redisStore } from 'cache-manager-redis-yet';
 import { MurLockModule } from 'murlock';
 import { RedisClientOptions } from 'redis';
@@ -17,6 +18,7 @@ import { DbService } from './services';
     JwtModule.register({
       global: true,
     }),
+    ScheduleModule.forRoot(),
     MurLockModule.forRootAsync({
       imports: [],
       useFactory: (configService: ConfigService) => {
