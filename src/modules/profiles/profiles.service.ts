@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PersonProfile } from '@prisma/client';
+import { Profile } from '@prisma/client';
 
 import { DbService } from '@/common';
 import { type uuid } from '@/common';
@@ -34,25 +34,23 @@ const padStartNumber = (
 export class ProfilesService {
   constructor(private readonly dbService: DbService) {}
 
-  getMany(options: GetManyOptions = {}): Promise<PersonProfile[]> {
+  getMany(options: GetManyOptions = {}): Promise<Profile[]> {
     const { order = ProfilesOrderEnum.Simple, tz = DEFAULT_TIME_ZONE } =
       options;
 
     if (order === ProfilesOrderEnum.Upcoming) {
-      return this.dbService.$queryRawUnsafe<PersonProfile[]>(
+      return this.dbService.$queryRawUnsafe<Profile[]>(
         profilesSql.upcoming({
           tz,
         }),
       );
     }
 
-    return this.dbService.$queryRawUnsafe<PersonProfile[]>(
-      profilesSql.simple(),
-    );
+    return this.dbService.$queryRawUnsafe<Profile[]>(profilesSql.simple());
   }
 
   get(id: uuid) {
-    return this.dbService.personProfile.findUnique({
+    return this.dbService.profile.findUnique({
       where: { id },
       select: {
         id: true,
@@ -74,7 +72,7 @@ export class ProfilesService {
       ? BirthdayMarkerEnum.Standard
       : BirthdayMarkerEnum.WithoutYear;
 
-    return this.dbService.personProfile.create({
+    return this.dbService.profile.create({
       data: {
         name: data.name,
         birthday,
@@ -89,7 +87,7 @@ export class ProfilesService {
   }
 
   delete(id: uuid) {
-    return this.dbService.personProfile.delete({
+    return this.dbService.profile.delete({
       where: {
         id,
       },
