@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -17,7 +18,7 @@ import {
 import * as dayjs from 'dayjs';
 
 import { V1_API_TAGS } from '@/app/constants';
-import { ApiVersion, ControllerVersionEnum, parseUuid } from '@/common';
+import { ApiVersion, ControllerVersionEnum, uuidUtils } from '@/common';
 import { AuthorizedId } from '@/modules/auth';
 import {
   BirthdayMarkerEnum,
@@ -91,7 +92,9 @@ export class ProfilesControllerV1 {
     @AuthorizedId() authorizedId: string,
     @Param('id') id: string,
   ): Promise<response.ProfileDto> {
-    const uuid = parseUuid(id);
+    if (!uuidUtils.isValidUuid(id)) {
+      throw new BadRequestException();
+    }
 
     const isBelongToUser = await this.profilesService.isBelongToUser(
       id,
@@ -102,7 +105,7 @@ export class ProfilesControllerV1 {
       throw new NotFoundException();
     }
 
-    const profile = await this.profilesService.get(uuid);
+    const profile = await this.profilesService.get(id);
     const isYear = profile.birthdayMarker === BirthdayMarkerEnum.Standard;
 
     return {
@@ -144,7 +147,9 @@ export class ProfilesControllerV1 {
     @AuthorizedId() authorizedId: string,
     @Param('id') id: string,
   ): Promise<void> {
-    const uuid = parseUuid(id);
+    if (!uuidUtils.isValidUuid(id)) {
+      throw new BadRequestException();
+    }
 
     const isBelongToUser = await this.profilesService.isBelongToUser(
       id,
@@ -155,6 +160,6 @@ export class ProfilesControllerV1 {
       throw new NotFoundException();
     }
 
-    await this.profilesService.delete(uuid);
+    await this.profilesService.delete(id);
   }
 }
