@@ -4,6 +4,10 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { dateUtils } from '@/common/utils';
 import { NotificationsService } from '@/modules/notifications';
 import { ProfilesOrderEnum, ProfilesService } from '@/modules/profiles';
+import {
+  ScheduledEventKey,
+  ScheduledEventsService,
+} from '@/modules/scheduled_events';
 import { TzService } from '@/modules/tz';
 import { UsersService } from '@/modules/users';
 
@@ -36,6 +40,7 @@ export class UpcomingBirthdayNotifyService implements OnApplicationBootstrap {
   private readonly logger = new Logger(UpcomingBirthdayNotifyService.name);
 
   constructor(
+    private scheduledEventsService: ScheduledEventsService,
     private tzService: TzService,
     private usersService: UsersService,
     private profilesService: ProfilesService,
@@ -53,7 +58,9 @@ export class UpcomingBirthdayNotifyService implements OnApplicationBootstrap {
   @Cron(CronExpression.EVERY_MINUTE)
   async notifyUsers() {
     this.logger.debug('START_UPCOMING_BIRTHDAY_NOTICING');
-    // TODO: Log that noticing start to database.
+    const scheduledEvent = await this.scheduledEventsService.start(
+      ScheduledEventKey.UpcomingBirthdaysAnnouncement,
+    );
 
     const execTime = dateUtils.now();
 
@@ -143,7 +150,7 @@ export class UpcomingBirthdayNotifyService implements OnApplicationBootstrap {
       this.logger.debug('NO_TIME_ZONES_TO_NOTIFY');
     }
 
+    await this.scheduledEventsService.end(scheduledEvent.id);
     this.logger.debug('END_UPCOMING_BIRTHDAY_NOTICING');
-    // TODO: Change status to finished of this noticing record in database.
   }
 }

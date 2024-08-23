@@ -54,3 +54,12 @@ model Profile {
 
   @@map("profiles")
 }
+
+model ScheduledEvent {
+  id      String    @id @default(uuid()) @db.Uuid
+  key     String
+  startAt DateTime  @default(now()) @db.Timestamp()
+  endAt   DateTime? @db.Timestamp()
+
+  @@map("scheduled_events")
+}
