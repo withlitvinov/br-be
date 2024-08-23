@@ -11,14 +11,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  ApiBadRequestResponse,
-  ApiBody,
-  ApiConflictResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
 import * as dayjs from 'dayjs';
 import * as tz from 'dayjs/plugin/timezone';
 import * as utc from 'dayjs/plugin/utc';
@@ -29,7 +21,7 @@ dayjs.extend(utc);
 dayjs.extend(tz);
 dayjs.tz.setDefault('Etc/GMT');
 
-import { ApiVersion, ControllerVersionEnum, CookieEnum } from '@/common';
+import { ControllerVersionEnum, CookieEnum } from '@/common';
 import {
   AuthService,
   CheckRefreshToken,
@@ -40,9 +32,13 @@ import {
 import * as sessionServiceTypes from '@/modules/auth/services/session.service.types';
 import { TzService } from '@/modules/tz';
 
-import { V1_API_TAGS } from '../../../constants';
-
-import { request, response } from './dtos';
+import {
+  ControllerOpenApi,
+  LoginOpenApi,
+  RefreshSessionOpenApi,
+  RegisterOpenApi,
+} from './auth.openapi';
+import { requests, responses } from './dtos';
 
 const PATH_PREFIX = '/auth';
 
@@ -72,12 +68,11 @@ const getCookieOptions = (expires?: Date): CookieOptions => {
 const getRefreshCookieOptions = () =>
   getCookieOptions(dayjs().tz().add(400, 'days').toDate());
 
+@ControllerOpenApi
 @Controller({
   path: PATH_PREFIX,
   version: ControllerVersionEnum.V1,
 })
-@ApiVersion(ControllerVersionEnum.V1)
-@ApiTags(V1_API_TAGS.AUTH)
 export class AuthControllerV1 {
   private sessionTokensTtl = 0;
 
@@ -91,18 +86,10 @@ export class AuthControllerV1 {
     this.sessionTokensTtl = configService.get('SESSION_TOKENS_TTL');
   }
 
-  @ApiOperation({
-    summary: 'Register new user',
-  })
-  @ApiBody({
-    type: request.RegisterDto,
-  })
-  @ApiOkResponse()
-  @ApiConflictResponse()
-  @ApiBadRequestResponse()
+  @RegisterOpenApi
   @Public()
   @Post('/register')
-  async register(@Body() dto: request.RegisterDto) {
+  async register(@Body() dto: requests.RegisterDto) {
     const leadTz = await this.tzService.resolveLeadZone(dto.time_zone);
 
     if (!leadTz) {
@@ -118,22 +105,14 @@ export class AuthControllerV1 {
     });
   }
 
-  @ApiOperation({
-    summary: 'Login',
-  })
-  @ApiBody({
-    type: request.LoginDto,
-  })
-  @ApiOkResponse({
-    type: response.LoginDto,
-  })
+  @LoginOpenApi
   @Public()
   @HttpCode(HttpStatus.OK)
   @Post('/login')
   async login(
     @Res({ passthrough: true }) res: Response,
-    @Body() dto: request.LoginDto,
-  ): Promise<response.LoginDto> {
+    @Body() dto: requests.LoginDto,
+  ): Promise<responses.LoginDto> {
     const user = await this.authService.getUser(dto.email);
 
     if (!user) {
@@ -164,9 +143,7 @@ export class AuthControllerV1 {
     };
   }
 
-  @ApiOperation({
-    summary: 'Logout',
-  })
+  @LoginOpenApi
   @Public()
   @CheckRefreshToken() // TODO: Merge with @RefreshToken()
   @HttpCode(HttpStatus.OK)
@@ -181,12 +158,7 @@ export class AuthControllerV1 {
     res.clearCookie(CookieEnum.RefreshToken);
   }
 
-  @ApiOperation({
-    summary: 'Refresh session',
-  })
-  @ApiOkResponse({
-    type: response.RefreshTokenDto,
-  })
+  @RefreshSessionOpenApi
   @Public()
   @CheckRefreshToken() // TODO: Merge with @RefreshToken()
   @HttpCode(HttpStatus.OK)
@@ -195,7 +167,7 @@ export class AuthControllerV1 {
   async refreshTokens(
     @RefreshToken() refreshToken: string,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<response.RefreshTokenDto> {
+  ): Promise<responses.RefreshTokenDto> {
     const sessionTokensCacheKey = getSessionTokensCacheKey(refreshToken);
 
     const cachedSessionTokens =
