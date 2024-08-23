@@ -6,7 +6,7 @@ import { ScheduledEventsModule } from '@/modules/scheduled_events';
 import { TzModule } from '@/modules/tz';
 import { UsersModule } from '@/modules/users';
 
-import { UpcomingBirthdaysAnnouncementSchedule } from './services/upcoming_birthdays_announcement.schedule';
+import { UpcomingBirthdaysAnnouncementSchedule } from './schedules/upcoming_birthdays_announcement.schedule';
 
 @Module({
   imports: [
