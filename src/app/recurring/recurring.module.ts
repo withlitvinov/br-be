@@ -6,7 +6,7 @@ import { ScheduledEventsModule } from '@/modules/scheduled_events';
 import { TzModule } from '@/modules/tz';
 import { UsersModule } from '@/modules/users';
 
-import { UpcomingBirthdayNotifyService } from './services/upcoming-birthday-notify.service';
+import { UpcomingBirthdaysAnnouncementSchedule } from './services/upcoming_birthdays_announcement.schedule';
 
 @Module({
   imports: [
@@ -16,6 +16,6 @@ import { UpcomingBirthdayNotifyService } from './services/upcoming-birthday-noti
     UsersModule,
     ProfilesModule,
   ],
-  providers: [UpcomingBirthdayNotifyService],
+  providers: [UpcomingBirthdaysAnnouncementSchedule],
 })
 export class RecurringModule {}

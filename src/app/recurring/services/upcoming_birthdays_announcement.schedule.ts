@@ -36,8 +36,12 @@ const getNextBirthdayDate = (
 };
 
 @Injectable()
-export class UpcomingBirthdayNotifyService implements OnApplicationBootstrap {
-  private readonly logger = new Logger(UpcomingBirthdayNotifyService.name);
+export class UpcomingBirthdaysAnnouncementSchedule
+  implements OnApplicationBootstrap
+{
+  private readonly logger = new Logger(
+    UpcomingBirthdaysAnnouncementSchedule.name,
+  );
 
   constructor(
     private scheduledEventsService: ScheduledEventsService,
