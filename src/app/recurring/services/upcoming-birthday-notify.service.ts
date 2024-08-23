@@ -55,7 +55,7 @@ export class UpcomingBirthdayNotifyService implements OnApplicationBootstrap {
      */
   }
 
-  @Cron(CronExpression.EVERY_MINUTE)
+  @Cron(CronExpression.EVERY_HOUR)
   async notifyUsers() {
     this.logger.debug('START_UPCOMING_BIRTHDAY_NOTICING');
     const scheduledEvent = await this.scheduledEventsService.start(
