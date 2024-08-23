@@ -1,0 +1,85 @@
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1' />
+    <title>Upcoming birthdays</title>
+    <link rel='preconnect' href='https://fonts.googleapis.com' />
+    <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin />
+    <link
+      href='https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap'
+      rel='stylesheet'
+    />
+    <style>
+      p { margin: 1px 0; line-height: 1.5; } br { display: block; content: '';
+      margin-top: 16px; } .root { width: 100%; border-collapse: collapse;
+      border: 0; border-spacing: 0; background: #ffffff; } .content { margin: 0
+      auto; max-width: 600px; padding-top: 32px; padding-left: 64px;
+      padding-right: 64px; } .profiles-table { margin-top: 8px; width: 100%;
+      border: 1px solid rgba(227, 226, 224, 0.5); border-radius: 8px;
+      border-collapse: separate; background-color: rgba(249, 249, 248, 1); }
+      .profiles-table_name { width: 133px; padding: 8px 12px; border-right: 1px
+      solid rgba(227, 226, 224, 0.5); border-bottom: 1px solid rgba(227, 226,
+      224, 0.5); vertical-align: middle; } .profiles-table_turning { width:
+      399px; padding: 8px 12px; border-bottom: 1px solid rgba(227, 226, 224,
+      0.5); vertical-align: middle; } .profiles-table_name-last { width: 133px;
+      padding: 8px 12px; border-right: 1px solid rgba(227, 226, 224, 0.5);
+      vertical-align: middle; } .profiles-table_turning-last { width: 399px;
+      padding: 8px 12px; vertical-align: middle; }
+    </style>
+  </head>
+  <body style='font-family: Inter, sans-serif; margin: 0'>
+    <table role='presentation' class='root'>
+      <tbody>
+        <tr>
+          <td>
+            <div class='content'>
+              <p>
+                Hey, here are the upcoming birthdays! Don't forget to wish them
+                a happy birthday!
+              </p>
+              {{#each periods}}
+                {{#if profiles}}
+                  <div style='margin-top: 16px'>
+                    <p><b>{{formattedDate}}</b></p>
+                    <table class='profiles-table'>
+                      <tbody>
+                        {{#each profiles}}
+                          <tr>
+                            {{#unless @last}}
+                              <td class='profiles-table_name'>
+                                {{name}}
+                              </td>
+                            {{else}}
+                              <td class='profiles-table_name-last'>
+                                {{name}}
+                              </td>
+                            {{/unless}}
+                            {{#unless @last}}
+                              <td class='profiles-table_turning'>
+                                {{#if isFull}}Turning
+                                  {{turning}}{{else}}No year to calculate
+                                  turning{{/if}}
+                              </td>
+                            {{else}}
+                              <td class='profiles-table_turning-last'>
+                                {{#if isFull}}Turning
+                                  {{turning}}{{else}}No year to calculate
+                                  turning age{{/if}}
+                              </td>
+                            {{/unless}}
+                          </tr>
+                        {{/each}}
+                      </tbody>
+                    </table>
+                  </div>
+                {{/if}}
+              {{/each}}
+              <p style='margin-top: 32px'>Best regards,</p>
+              <p>Birthday | Withlitvinov team</p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </body>
+</html>

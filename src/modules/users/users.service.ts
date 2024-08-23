@@ -27,6 +27,9 @@ export class UsersService {
             },
           }
         : undefined,
+      include: {
+        config: true,
+      },
     });
   }
 

@@ -30,11 +30,11 @@ const now = (tz?: string) => {
   return dayjs().tz(tz);
 };
 
-const getTime = (date: dayjs.Dayjs | Date, tz?: string) => {
+const getTime = (date?: dayjs.Dayjs | Date, tz?: string) => {
   return dayjs(date).tz(tz);
 };
 
-const getDate = (date: dayjs.Dayjs | Date, tz?: string) => {
+const getDate = (date?: dayjs.Dayjs | Date, tz?: string) => {
   return getTime(date, tz);
 };
 

@@ -1,8 +1,8 @@
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import dayjs from 'dayjs';
 
 import { dateUtils } from '@/common/utils';
+import { NotificationsService } from '@/modules/notifications';
 import { ProfilesOrderEnum, ProfilesService } from '@/modules/profiles';
 import { TzService } from '@/modules/tz';
 import { UsersService } from '@/modules/users';
@@ -10,7 +10,10 @@ import { UsersService } from '@/modules/users';
 const NOTIFY_HOUR = 8; // Notify at hour (local time)
 const DAYS_UNTIL_BIRTHDAY = [7, 3, 1];
 
-const getNextBirthdayDate = (base: dayjs.Dayjs, birthday: dayjs.Dayjs) => {
+const getNextBirthdayDate = (
+  base: dateUtils.dayjs.Dayjs,
+  birthday: dateUtils.dayjs.Dayjs,
+) => {
   let result = dateUtils.getDate(birthday);
 
   const baseY = base.year();
@@ -36,6 +39,7 @@ export class UpcomingBirthdayNotifyService implements OnApplicationBootstrap {
     private tzService: TzService,
     private usersService: UsersService,
     private profilesService: ProfilesService,
+    private notificationsService: NotificationsService,
   ) {}
 
   onApplicationBootstrap() {
@@ -46,7 +50,7 @@ export class UpcomingBirthdayNotifyService implements OnApplicationBootstrap {
      */
   }
 
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron(CronExpression.EVERY_MINUTE)
   async notifyUsers() {
     this.logger.debug('START_UPCOMING_BIRTHDAY_NOTICING');
     // TODO: Log that noticing start to database.
@@ -80,35 +84,57 @@ export class UpcomingBirthdayNotifyService implements OnApplicationBootstrap {
             order: ProfilesOrderEnum.Simple,
           });
 
-          type BulkOfProfilesToNotify = {
-            profile: (typeof profiles)[number];
-            in: number;
-          };
+          const execTimeLocal = dateUtils.getTime(
+            execTime,
+            user.config.timeZone,
+          );
 
-          const bulkOfProfilesToNotify: BulkOfProfilesToNotify[] = [];
+          const birthdayPeriods: {
+            [key: number]: {
+              date: dateUtils.dayjs.Dayjs;
+              profiles: typeof profiles;
+            };
+          } = [];
 
           // Collect profiles that need to be notified to the user
           for (const profile of profiles) {
             // Calc next birthday date
             const nextBirthday = getNextBirthdayDate(
-              execTime,
+              execTimeLocal,
               dateUtils.getDate(profile.birthday),
             );
 
             const daysBeforeBirth = nextBirthday.diff(
-              dateUtils.resetTime(execTime),
+              dateUtils.resetTime(execTimeLocal),
               'd',
             );
 
             if (DAYS_UNTIL_BIRTHDAY.includes(daysBeforeBirth)) {
-              bulkOfProfilesToNotify.push({
-                profile,
-                in: daysBeforeBirth,
-              });
+              if (!birthdayPeriods[daysBeforeBirth]) {
+                birthdayPeriods[daysBeforeBirth] = {
+                  date: nextBirthday,
+                  profiles: [profile],
+                };
+              } else {
+                birthdayPeriods[daysBeforeBirth].profiles.push(profile);
+              }
             }
           }
 
-          // TODO: Send bulk to notification queue
+          if (Object.keys(birthdayPeriods).length > 0) {
+            await this.notificationsService.notifyAboutUpcomingBirthdays(
+              user.id,
+              Object.entries(birthdayPeriods).map(([inDays, period]) => ({
+                inDays: +inDays,
+                date: period.date,
+                profiles: period.profiles,
+              })),
+            );
+          } else {
+            this.logger.debug(
+              `NO_PROFILES_TO_NOTIFY User - ${user.name}, ID - ${user.id}`,
+            );
+          }
         }
       } else {
         this.logger.debug('NO_USERS_TO_NOTIFY');
