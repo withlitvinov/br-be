@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { DbService } from '@/common';
 import { dateUtils } from '@/common/utils';
 
-import { ScheduledEventKey } from './constants';
+import { ScheduledEventKey, ScheduledEventStatus } from './constants';
 
 @Injectable()
 export class ScheduledEventsService {
@@ -12,17 +12,31 @@ export class ScheduledEventsService {
   start(eventKey: ScheduledEventKey) {
     return this.dbService.scheduledEvent.create({
       data: {
+        status: ScheduledEventStatus.Processing,
         key: eventKey,
       },
     });
   }
 
-  end(eventId: string) {
+  success(eventId: string) {
     return this.dbService.scheduledEvent.update({
       where: {
         id: eventId,
       },
       data: {
+        status: ScheduledEventStatus.Succeed,
+        endAt: dateUtils.getDate().toDate(),
+      },
+    });
+  }
+
+  fail(eventId: string) {
+    return this.dbService.scheduledEvent.update({
+      where: {
+        id: eventId,
+      },
+      data: {
+        status: ScheduledEventStatus.Failed,
         endAt: dateUtils.getDate().toDate(),
       },
     });
