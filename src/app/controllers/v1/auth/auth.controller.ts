@@ -11,7 +11,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { CookieOptions, Response } from 'express';
+import { Response } from 'express';
 import { MurLock } from 'murlock';
 
 import { ControllerVersionEnum, CookieEnum } from '@/common';
@@ -33,34 +33,19 @@ import {
   RegisterOpenApi,
 } from './auth.openapi';
 import { requests, responses } from './dtos';
+import { buildCacheKey, buildCookieOptions } from './utils';
 
 const PATH_PREFIX = '/auth';
 
 const SESSION_TOKENS_LOCK_KEY = 'lock:session_tokens';
 
-const getSessionTokensCacheKey = (refreshToken: string) =>
-  `cache:session_tokens:${refreshToken}`;
-
-const getCookieOptions = (expires?: Date): CookieOptions => {
-  const isDev = process.env.NODE_ENV === 'development';
-
-  const options: CookieOptions = {
-    httpOnly: true,
-    sameSite: 'none',
-    secure: true,
-    expires,
-  };
-
-  if (isDev) {
-    options.sameSite = 'lax';
-    options.secure = false;
-  }
-
-  return options;
+const buildRefreshCookieCacheKey = (token: string) => {
+  return buildCacheKey('session_token', token);
 };
 
-const getRefreshCookieOptions = () =>
-  getCookieOptions(dateUtils.now().add(400, 'days').toDate());
+const buildRefreshCookieOptions = () => {
+  return buildCookieOptions(dateUtils.now().add(400, 'days').toDate());
+};
 
 @ControllerOpenApi
 @Controller({
@@ -128,7 +113,7 @@ export class AuthControllerV1 {
     res.cookie(
       CookieEnum.RefreshToken,
       refreshToken,
-      getRefreshCookieOptions(),
+      buildRefreshCookieOptions(),
     );
 
     return {
@@ -147,7 +132,7 @@ export class AuthControllerV1 {
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
     await this.sessionService.expireSession(refreshToken);
-    await this.cacheManager.del(getSessionTokensCacheKey(refreshToken));
+    await this.cacheManager.del(buildRefreshCookieCacheKey(refreshToken));
 
     res.clearCookie(CookieEnum.RefreshToken);
   }
@@ -162,7 +147,7 @@ export class AuthControllerV1 {
     @RefreshToken() refreshToken: string,
     @Res({ passthrough: true }) res: Response,
   ): Promise<responses.RefreshTokenDto> {
-    const sessionTokensCacheKey = getSessionTokensCacheKey(refreshToken);
+    const sessionTokensCacheKey = buildRefreshCookieCacheKey(refreshToken);
 
     const cachedSessionTokens =
       await this.cacheManager.get<sessionServiceTypes.SessionTokens>(
@@ -173,7 +158,7 @@ export class AuthControllerV1 {
       res.cookie(
         CookieEnum.RefreshToken,
         cachedSessionTokens.refreshToken,
-        getRefreshCookieOptions(),
+        buildRefreshCookieOptions(),
       );
 
       return {
@@ -190,7 +175,7 @@ export class AuthControllerV1 {
 
     const session = await this.sessionService.createTokens(sessionUserId);
 
-    const newSessionTokensCacheKey = getSessionTokensCacheKey(
+    const newSessionTokensCacheKey = buildRefreshCookieCacheKey(
       session.refreshToken,
     );
 
@@ -208,7 +193,7 @@ export class AuthControllerV1 {
     res.cookie(
       CookieEnum.RefreshToken,
       session.refreshToken,
-      getRefreshCookieOptions(),
+      buildRefreshCookieOptions(),
     );
 
     return {
