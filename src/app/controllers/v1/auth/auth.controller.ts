@@ -11,17 +11,11 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as dayjs from 'dayjs';
-import * as tz from 'dayjs/plugin/timezone';
-import * as utc from 'dayjs/plugin/utc';
 import { CookieOptions, Response } from 'express';
 import { MurLock } from 'murlock';
 
-dayjs.extend(utc);
-dayjs.extend(tz);
-dayjs.tz.setDefault('Etc/GMT');
-
 import { ControllerVersionEnum, CookieEnum } from '@/common';
+import { dateUtils } from '@/common/utils';
 import {
   AuthService,
   CheckRefreshToken,
@@ -66,7 +60,7 @@ const getCookieOptions = (expires?: Date): CookieOptions => {
 };
 
 const getRefreshCookieOptions = () =>
-  getCookieOptions(dayjs().tz().add(400, 'days').toDate());
+  getCookieOptions(dateUtils.now().add(400, 'days').toDate());
 
 @ControllerOpenApi
 @Controller({
