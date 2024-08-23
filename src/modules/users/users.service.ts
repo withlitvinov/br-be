@@ -2,9 +2,36 @@ import { Injectable } from '@nestjs/common';
 
 import { DbService } from '@/common';
 
+type GetManyOptions = {
+  timeZones: string[];
+};
+
 @Injectable()
 export class UsersService {
   constructor(private readonly dbService: DbService) {}
+
+  getMany(
+    options: GetManyOptions = {
+      timeZones: [],
+    },
+  ) {
+    const { timeZones } = options;
+
+    return this.dbService.user.findMany({
+      where: timeZones.length
+        ? {
+            config: {
+              timeZone: {
+                in: timeZones,
+              },
+            },
+          }
+        : undefined,
+      include: {
+        config: true,
+      },
+    });
+  }
 
   getDetails(userId: string) {
     return this.dbService.user.findUnique({

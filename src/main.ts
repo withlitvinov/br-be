@@ -11,8 +11,11 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
 
 import { NEUTRAL_API_TAGS, V1_API_TAGS } from '@/app/constants';
+import { dateUtils } from '@/common/utils';
 
 import { RootModule } from './root.module';
+
+dateUtils.setGlobalTz(process.env.TZ);
 
 const GLOBAL_PREFIX = '/api';
 const EXCLUDED_FROM_GLOBAL_PREFIX: RouteInfo[] = [

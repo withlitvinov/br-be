@@ -1,12 +1,14 @@
+import { BullModule } from '@nestjs/bullmq';
 import { CacheModule } from '@nestjs/cache-manager';
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { ScheduleModule } from '@nestjs/schedule';
 import { redisStore } from 'cache-manager-redis-yet';
 import { MurLockModule } from 'murlock';
 import { RedisClientOptions } from 'redis';
 
-import { DbService } from './services';
+import { DbService, MailerService, TemplateService } from './services';
 
 @Global()
 @Module({
@@ -17,6 +19,7 @@ import { DbService } from './services';
     JwtModule.register({
       global: true,
     }),
+    ScheduleModule.forRoot(),
     MurLockModule.forRootAsync({
       imports: [],
       useFactory: (configService: ConfigService) => {
@@ -59,8 +62,25 @@ import { DbService } from './services';
       },
       inject: [ConfigService],
     }),
+    BullModule.forRootAsync({
+      useFactory: (configService: ConfigService) => {
+        const host = configService.get('REDIS__HOST');
+        const port = +configService.get('REDIS__PORT');
+        const password = configService.get('REDIS__PASSWORD');
+
+        return {
+          prefix: 'queue',
+          connection: {
+            host,
+            port,
+            password,
+          },
+        };
+      },
+      inject: [ConfigService],
+    }),
   ],
-  providers: [DbService],
-  exports: [DbService],
+  providers: [DbService, MailerService, TemplateService],
+  exports: [DbService, MailerService, TemplateService],
 })
 export class GlobalModule {}

@@ -55,6 +55,7 @@ module.exports = {
     'import/group-exports': 'error',
     'import/consistent-type-specifier-style': ['error', 'prefer-inline'],
     'import/newline-after-import': 'error',
+    'import/namespace': ['warn'],
     'sort-imports': [
       'error',
       {
