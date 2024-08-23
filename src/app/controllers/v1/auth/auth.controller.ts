@@ -26,30 +26,36 @@ import {
 import * as sessionServiceTypes from '@/modules/auth/services/session.service.types';
 import { TzService } from '@/modules/tz';
 
+import { CacheKeyEnum } from '../../../constants';
+
 import {
   ControllerOpenApi,
   LoginOpenApi,
   RefreshSessionOpenApi,
   RegisterOpenApi,
 } from './auth.openapi';
+import {
+  CONTROLLER_ROUTE,
+  COOKIE_MAX_EXPIRATION_DAYS,
+  SESSION_TOKEN_LOCK_KEY,
+  SESSION_TOKEN_LOCK_RELEASE_TIME,
+} from './constants';
 import { requests, responses } from './dtos';
 import { buildCacheKey, buildCookieOptions } from './utils';
 
-const PATH_PREFIX = '/auth';
-
-const SESSION_TOKENS_LOCK_KEY = 'lock:session_tokens';
-
 const buildRefreshCookieCacheKey = (token: string) => {
-  return buildCacheKey('session_token', token);
+  return buildCacheKey(CacheKeyEnum.RefreshToken, token);
 };
 
 const buildRefreshCookieOptions = () => {
-  return buildCookieOptions(dateUtils.now().add(400, 'days').toDate());
+  return buildCookieOptions(
+    dateUtils.now().add(COOKIE_MAX_EXPIRATION_DAYS, 'days').toDate(),
+  );
 };
 
 @ControllerOpenApi
 @Controller({
-  path: PATH_PREFIX,
+  path: CONTROLLER_ROUTE,
   version: ControllerVersionEnum.V1,
 })
 export class AuthControllerV1 {
@@ -142,7 +148,7 @@ export class AuthControllerV1 {
   @CheckRefreshToken() // TODO: Merge with @RefreshToken()
   @HttpCode(HttpStatus.OK)
   @Post('/refresh')
-  @MurLock(5000, SESSION_TOKENS_LOCK_KEY, '0')
+  @MurLock(SESSION_TOKEN_LOCK_RELEASE_TIME, SESSION_TOKEN_LOCK_KEY, '0')
   async refreshTokens(
     @RefreshToken() refreshToken: string,
     @Res({ passthrough: true }) res: Response,

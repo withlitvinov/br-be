@@ -1,5 +1,7 @@
 import { CookieOptions } from 'express';
 
+import { CACHE_KEY_PREFIX } from '../../../constants';
+
 const buildCookieOptions = (expires?: Date): CookieOptions => {
   const isDev = process.env.NODE_ENV === 'development';
 
@@ -19,7 +21,7 @@ const buildCookieOptions = (expires?: Date): CookieOptions => {
 };
 
 const buildCacheKey = (key: string, value: string) => {
-  return `cache:${key}:${value}`;
+  return `${CACHE_KEY_PREFIX}:${key}:${value}`;
 };
 
 export { buildCookieOptions, buildCacheKey };
