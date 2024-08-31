@@ -1,22 +1,22 @@
 import { Module } from '@nestjs/common';
-import { PassportModule } from '@nestjs/passport';
+import { APP_GUARD } from '@nestjs/core';
 
-import { SessionModel, UserModel } from './models';
-import { AuthService, JwtSignerService, SessionService } from './services';
-import { JwtStrategy } from './strategies';
-
-const MODELS = [UserModel, SessionModel] as const;
-const SERVICES = [AuthService, SessionService, JwtSignerService] as const;
-const SERVICES_TO_EXPORT = [
-  AuthService,
-  SessionService,
-  JwtSignerService,
-] as const;
-const STRATEGIES = [JwtStrategy] as const;
+import { AuthGuard } from './guards';
+import { UserModel } from './models';
+import { AuthService, SessionService } from './services';
 
 @Module({
-  imports: [PassportModule],
-  providers: [...MODELS, ...SERVICES, ...STRATEGIES],
-  exports: [...SERVICES_TO_EXPORT],
+  imports: [],
+  providers: [
+    UserModel,
+    AuthService,
+    SessionService,
+    AuthGuard,
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+  ],
+  exports: [AuthService, SessionService, AuthGuard],
 })
 export class AuthModule {}

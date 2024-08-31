@@ -12,7 +12,7 @@ const V1_API_TAGS = {
 const CACHE_KEY_PREFIX = 'cache';
 
 enum CacheKeyEnum {
-  RefreshToken = 'refresh_token',
+  SID = 'sid',
 }
 
 export { NEUTRAL_API_TAGS, V1_API_TAGS, CACHE_KEY_PREFIX, CacheKeyEnum };

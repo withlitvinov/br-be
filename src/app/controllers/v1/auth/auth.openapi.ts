@@ -37,9 +37,7 @@ const LoginOpenApi = applyDecorators(
   ApiBody({
     type: requests.LoginDto,
   }),
-  ApiOkResponse({
-    type: responses.LoginDto,
-  }),
+  ApiOkResponse(),
 );
 
 const LogoutOpenApi = applyDecorators(
@@ -48,19 +46,4 @@ const LogoutOpenApi = applyDecorators(
   }),
 );
 
-const RefreshSessionOpenApi = applyDecorators(
-  ApiOperation({
-    summary: 'Refresh session',
-  }),
-  ApiOkResponse({
-    type: responses.RefreshTokenDto,
-  }),
-);
-
-export {
-  ControllerOpenApi,
-  RegisterOpenApi,
-  LoginOpenApi,
-  LogoutOpenApi,
-  RefreshSessionOpenApi,
-};
+export { ControllerOpenApi, RegisterOpenApi, LoginOpenApi, LogoutOpenApi };

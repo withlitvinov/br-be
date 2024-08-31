@@ -15,7 +15,7 @@ import {
 import * as dayjs from 'dayjs';
 
 import { ApiVersion, ControllerVersionEnum } from '@/common';
-import { AuthorizedId } from '@/modules/auth';
+import { AuthorizedUserId } from '@/modules/auth';
 import { TzService } from '@/modules/tz';
 import { UsersService } from '@/modules/users';
 
@@ -46,9 +46,9 @@ export class MyControllerV1 {
   @ApiUnauthorizedResponse()
   @Get()
   async myDetails(
-    @AuthorizedId() authorizedId: string,
+    @AuthorizedUserId() userId: string,
   ): Promise<responses.MyDto> {
-    const _user = await this.usersService.getDetails(authorizedId);
+    const _user = await this.usersService.getDetails(userId);
 
     return {
       id: _user.id,
@@ -68,10 +68,10 @@ export class MyControllerV1 {
   @ApiUnauthorizedResponse()
   @Patch('name')
   async patchName(
-    @AuthorizedId() authorizedId: string,
+    @AuthorizedUserId() userId: string,
     @Body() body: requests.PatchNameDto,
   ): Promise<void> {
-    await this.usersService.updateName(authorizedId, body.name);
+    await this.usersService.updateName(userId, body.name);
   }
 
   @ApiOperation({
@@ -82,7 +82,7 @@ export class MyControllerV1 {
   @ApiUnauthorizedResponse()
   @Patch('time_zone')
   async patchTimeZone(
-    @AuthorizedId() authorizedId: string,
+    @AuthorizedUserId() userId: string,
     @Body() body: requests.PatchTimeZoneDto,
   ): Promise<void> {
     const leadTz = await this.tzService.resolveLeadZone(body.time_zone);
@@ -91,6 +91,6 @@ export class MyControllerV1 {
       throw new BadRequestException(`Wrong time zone '${body.time_zone}'`);
     }
 
-    await this.usersService.updateTimeZone(authorizedId, leadTz.id);
+    await this.usersService.updateTimeZone(userId, leadTz.id);
   }
 }
