@@ -1,14 +1,14 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 
+import { UsersModule } from '@/modules/users';
+
 import { AuthGuard } from './guards';
-import { UserModel } from './models';
 import { AuthService, SessionService } from './services';
 
 @Module({
-  imports: [],
+  imports: [UsersModule],
   providers: [
-    UserModel,
     AuthService,
     SessionService,
     AuthGuard,
