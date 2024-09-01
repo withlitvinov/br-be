@@ -116,26 +116,52 @@ export class SessionService {
   async getSession(sid: string) {
     const hSid = createHash256(sid);
 
-    return this.dbService.session.findFirst({
-      where: {
-        sid: hSid,
-      },
-      select: {
-        id: true,
-        createdAt: true,
-        expireAt: true,
-        userId: true,
-      },
-    });
+    const sessionResult = await fromPromise(
+      this.dbService.session.findFirst({
+        where: {
+          sid: hSid,
+        },
+        select: {
+          id: true,
+          createdAt: true,
+          expireAt: true,
+          userId: true,
+        },
+      }),
+      (original) => ({
+        original,
+        message: 'Failed to find user session',
+      }),
+    );
+
+    if (sessionResult.isErr()) {
+      return err(SessionService.errC.UNKNOWN);
+    }
+
+    return ok(sessionResult.value);
   }
 
-  async drop(sid: string) {
+  async drop(
+    sid: string,
+  ): Promise<Result<undefined, tsu.ObjectValues<typeof SessionService.errC>>> {
     const hSid = createHash256(sid);
 
-    await this.dbService.session.deleteMany({
-      where: {
-        sid: hSid,
-      },
-    });
+    const dropResult = await fromPromise(
+      this.dbService.session.deleteMany({
+        where: {
+          sid: hSid,
+        },
+      }),
+      (original) => ({
+        original,
+        message: 'Failed to drop user sessions',
+      }),
+    );
+
+    if (dropResult.isErr()) {
+      return err(SessionService.errC.UNKNOWN);
+    }
+
+    return ok(undefined);
   }
 }

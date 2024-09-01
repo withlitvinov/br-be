@@ -36,25 +36,25 @@ export class AuthGuard {
       user: null,
     };
 
-    // TODO: Possible to extract cookie retrieval to std func
+    // TODO: Possible to extract cookie retrieval to some std func
     const sid = req.cookies[CookieEnum.SID];
 
     const isValid = await ncu.pipeline([
       sid,
       async () => {
-        const session = await this.sessionService.getSession(sid);
+        const sessionResult = await this.sessionService.getSession(sid);
 
-        if (session) {
-          // Attach user's id to request ctx
+        if (sessionResult.isOk()) {
           req.ctx.user = {
-            id: session.userId,
+            id: sessionResult.value.userId,
           };
+
+          return dateUtils
+            .getTime(sessionResult.value.expireAt)
+            .isAfter(dateUtils.now());
         }
 
-        return (
-          session &&
-          dateUtils.getTime(session.expireAt).isAfter(dateUtils.now())
-        );
+        return false;
       },
     ]);
 
