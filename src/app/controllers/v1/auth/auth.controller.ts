@@ -4,6 +4,7 @@ import {
   Controller,
   HttpCode,
   HttpStatus,
+  InternalServerErrorException,
   Post,
   Req,
   Res,
@@ -79,12 +80,21 @@ export class AuthControllerV1 {
     ]);
 
     if (!isAuthorized) {
+      // Hide information about the presence of a user in the system from potential hackers
       throw new UnauthorizedException();
     }
 
-    const session = await this.sessionService.register(user.id);
+    const newSessionResult = await this.sessionService.registerSession(user.id);
 
-    res.cookie(CookieEnum.SID, session.sid, buildSidCookieOptions());
+    if (newSessionResult.isErr()) {
+      throw new InternalServerErrorException();
+    }
+
+    res.cookie(
+      CookieEnum.SID,
+      newSessionResult.value.sid,
+      buildSidCookieOptions(),
+    );
   }
 
   @LogoutOpenApi

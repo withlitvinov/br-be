@@ -25,7 +25,7 @@ export class AuthService {
     });
   }
 
-  async verifyPassword(pass: string, v: string) {
+  verifyPassword(pass: string, v: string) {
     return argon2.verify(pass, v);
   }
 }

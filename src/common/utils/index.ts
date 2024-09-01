@@ -6,3 +6,5 @@ export * as dateUtils from './date.utils';
 export * as ncu from './non-classified.utils';
 // Re-exported libs
 export * as l from './libs';
+// TypeScript utils
+export * as tsu from './ts.utils';
