@@ -2,10 +2,11 @@ import { applyDecorators } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBody,
-  ApiConflictResponse,
+  ApiInternalServerErrorResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 
 import { V1_API_TAGS } from '@/app/constants';
@@ -26,8 +27,8 @@ const RegisterOpenApi = applyDecorators(
     type: requests.RegisterDto,
   }),
   ApiOkResponse(),
-  ApiConflictResponse(),
-  ApiBadRequestResponse,
+  ApiBadRequestResponse(),
+  ApiInternalServerErrorResponse(),
 );
 
 const LoginOpenApi = applyDecorators(
@@ -38,12 +39,15 @@ const LoginOpenApi = applyDecorators(
     type: requests.LoginDto,
   }),
   ApiOkResponse(),
+  ApiUnauthorizedResponse(),
+  ApiInternalServerErrorResponse(),
 );
 
 const LogoutOpenApi = applyDecorators(
   ApiOperation({
     summary: 'Logout',
   }),
+  ApiOkResponse(),
 );
 
 export { ControllerOpenApi, RegisterOpenApi, LoginOpenApi, LogoutOpenApi };
