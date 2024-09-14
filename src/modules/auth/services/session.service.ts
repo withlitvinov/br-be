@@ -134,7 +134,7 @@ export class SessionService {
       }),
     );
 
-    if (sessionResult.isErr()) {
+    if (sessionResult.isErr() || sessionResult.value === null) {
       return err(SessionService.errC.UNKNOWN);
     }
 

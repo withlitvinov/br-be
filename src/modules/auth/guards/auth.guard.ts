@@ -44,7 +44,7 @@ export class AuthGuard {
       async () => {
         const sessionResult = await this.sessionService.getSession(sid);
 
-        if (sessionResult.isOk() && sessionResult.value) {
+        if (sessionResult.isOk()) {
           req.ctx.user = {
             id: sessionResult.value.userId,
           };
