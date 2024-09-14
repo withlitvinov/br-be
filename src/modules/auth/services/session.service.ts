@@ -1,53 +1,167 @@
+import * as crypto from 'node:crypto';
+
 import { Injectable } from '@nestjs/common';
+import { Result, err, fromPromise, ok } from 'neverthrow';
 
-import { SessionModel } from '../models';
-import { JwtSignerService } from '../services';
+import { DbService } from '@/common';
+import { dateUtils, tsu } from '@/common/utils';
 
-import * as sessionServiceTypes from './session.service.types';
+// In days
+const MAX_SESSION_DURATION = 60;
+// Per user
+const MAX_SESSION_COUNT = 5;
+
+const genToken128 = () => {
+  return crypto.randomBytes(16).toString('hex');
+};
+
+const createHash256 = (v: string) => {
+  return crypto.hash('sha256', v);
+};
+
+type Session = {
+  id: string;
+  sid: string;
+  createdAt: Date;
+  expireAt: Date;
+  userId: string;
+};
 
 @Injectable()
 export class SessionService {
-  constructor(
-    private readonly jwtSignerService: JwtSignerService,
-    private readonly sessionModel: SessionModel,
-  ) {}
+  static errC = {
+    UNKNOWN: -1,
+  } as const;
 
-  async createTokens(
-    userId: string,
-  ): Promise<sessionServiceTypes.SessionTokens> {
-    const accessToken = await this.jwtSignerService.signAccessToken({
-      id: userId,
-    });
-    const decodedAccessToken =
-      this.jwtSignerService.decodeAccessToken(accessToken);
-    const refreshToken = await this.jwtSignerService.signRefreshToken({
-      id: userId,
-    });
-    const decodedRefreshToken =
-      this.jwtSignerService.decodeRefreshToken(refreshToken);
+  constructor(private dbService: DbService) {}
 
-    await this.sessionModel.createOne(userId, {
-      refreshToken: refreshToken,
-      expiresIn: new Date(decodedRefreshToken.exp * 1000),
-    });
+  async registerSession(
+    uid: string,
+  ): Promise<Result<Session, tsu.ObjectValues<typeof SessionService.errC>>> {
+    const usrSessionCntResult = await fromPromise(
+      this.dbService.session.count({
+        where: {
+          userId: uid,
+        },
+      }),
+      (original) => ({
+        original,
+        message: 'Failed to count user sessions from db',
+      }),
+    );
 
-    return {
-      accessToken,
-      accessTokenExpiresIn: decodedAccessToken.exp,
-      refreshToken,
-      refreshTokenExpiresIn: decodedRefreshToken.exp,
-    };
-  }
-
-  async expireSession(refreshToken: string) {
-    const session = await this.sessionModel.findByRefreshToken(refreshToken);
-
-    if (!session) {
-      return null;
+    if (usrSessionCntResult.isErr()) {
+      // TODO: Write to error log file
+      return err(SessionService.errC.UNKNOWN);
     }
 
-    await this.sessionModel.deleteById(session.id);
+    if (usrSessionCntResult.value >= MAX_SESSION_COUNT) {
+      // Flush all sessions
+      const delCnt = await fromPromise(
+        this.dbService.session.deleteMany({
+          where: {
+            userId: uid,
+          },
+        }),
+        (original) => ({
+          original,
+          message: 'Failed to delete user sessions',
+        }),
+      );
 
-    return session.userId;
+      if (delCnt.isErr()) {
+        // TODO: Write to error log file
+        return err(SessionService.errC.UNKNOWN);
+      }
+    }
+
+    const sid = genToken128();
+    const hSid = createHash256(sid);
+    const expireAt = dateUtils.now().add(MAX_SESSION_DURATION, 'd').toDate();
+
+    const newSessionResult = await fromPromise(
+      this.dbService.session.create({
+        data: {
+          sid: hSid,
+          expireAt,
+          userId: uid,
+        },
+        select: {
+          id: true,
+          createdAt: true,
+          expireAt: true,
+          userId: true,
+        },
+      }),
+      (original) => ({
+        original,
+        message: 'Failed to create user session',
+      }),
+    );
+
+    if (newSessionResult.isErr()) {
+      // TODO: Write to error log file
+      return err(SessionService.errC.UNKNOWN);
+    }
+
+    return ok({
+      id: newSessionResult.value.id,
+      sid,
+      createdAt: newSessionResult.value.createdAt,
+      expireAt: newSessionResult.value.expireAt,
+      userId: newSessionResult.value.userId,
+    });
+  }
+
+  async getSession(sid: string) {
+    const hSid = createHash256(sid);
+
+    const sessionResult = await fromPromise(
+      this.dbService.session.findFirst({
+        where: {
+          sid: hSid,
+        },
+        select: {
+          id: true,
+          createdAt: true,
+          expireAt: true,
+          userId: true,
+        },
+      }),
+      (original) => ({
+        original,
+        message: 'Failed to find user session',
+      }),
+    );
+
+    if (sessionResult.isErr() || sessionResult.value === null) {
+      return err(SessionService.errC.UNKNOWN);
+    }
+
+    return ok(sessionResult.value);
+  }
+
+  async drop(
+    sid: string,
+  ): Promise<Result<undefined, tsu.ObjectValues<typeof SessionService.errC>>> {
+    const hSid = createHash256(sid);
+
+    const dropResult = await fromPromise(
+      this.dbService.session.deleteMany({
+        where: {
+          sid: hSid,
+        },
+      }),
+      (original) => ({
+        original,
+        message: 'Failed to drop user sessions',
+      }),
+    );
+
+    if (dropResult.isErr()) {
+      return err(SessionService.errC.UNKNOWN);
+    }
+
+    return ok(undefined);
   }
 }

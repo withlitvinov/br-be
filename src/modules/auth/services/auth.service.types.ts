@@ -6,9 +6,4 @@ type RegisterUserPayload = {
   timeZone: string;
 };
 
-type LoginUserPayload = {
-  email: string;
-  password: string;
-};
-
-export type { RegisterUserPayload, LoginUserPayload };
+export type { RegisterUserPayload };

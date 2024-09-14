@@ -32,10 +32,10 @@ model UserConfig {
 }
 
 model Session {
-  id           String   @id @default(uuid()) @db.Uuid
-  refreshToken String   @map("refresh_token")
-  expiresIn    DateTime @map("expires_in") @db.Timestamp()
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp()
+  id        String   @id @default(uuid()) @db.Uuid
+  sid       String
+  expireAt  DateTime @map("expire_at") @db.Timestamp()
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp()
 
   user   User   @relation(fields: [userId], references: [id])
   userId String @map("user_id") @db.Uuid

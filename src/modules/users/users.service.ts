@@ -6,9 +6,36 @@ type GetManyOptions = {
   timeZones: string[];
 };
 
+type NewUser = {
+  name: string;
+  email: string;
+  password: string;
+  birthday: Date;
+  timeZone: string;
+};
+
 @Injectable()
 export class UsersService {
   constructor(private readonly dbService: DbService) {}
+
+  create(nu: NewUser) {
+    return this.dbService.user.create({
+      data: {
+        name: nu.name,
+        email: nu.email,
+        password: nu.password,
+        birthday: nu.birthday,
+        config: {
+          create: {
+            timeZone: nu.timeZone,
+          },
+        },
+      },
+      include: {
+        config: true,
+      },
+    });
+  }
 
   getMany(
     options: GetManyOptions = {
@@ -33,10 +60,21 @@ export class UsersService {
     });
   }
 
-  getDetails(userId: string) {
+  getByEmail(email: string) {
     return this.dbService.user.findUnique({
       where: {
-        id: userId,
+        email,
+      },
+      include: {
+        config: true,
+      },
+    });
+  }
+
+  getDetails(uid: string) {
+    return this.dbService.user.findUnique({
+      where: {
+        id: uid,
       },
       include: {
         config: true,
@@ -47,12 +85,12 @@ export class UsersService {
   /**
    * Get user's time zone
    *
-   * @param userId
+   * @param uid
    */
-  async getTimeZone(userId: string) {
+  async getTimeZone(uid: string) {
     const user = await this.dbService.user.findUnique({
       where: {
-        id: userId,
+        id: uid,
       },
       select: {
         config: {
@@ -70,10 +108,10 @@ export class UsersService {
     return user.config.timeZone;
   }
 
-  async updateName(userId: string, name: string) {
-    await this.dbService.user.update({
+  updateName(uid: string, name: string): Promise<void> {
+    return void this.dbService.user.update({
       where: {
-        id: userId,
+        id: uid,
       },
       data: {
         name,
@@ -81,15 +119,15 @@ export class UsersService {
     });
   }
 
-  async updateTimeZone(userId: string, timeZone: string) {
-    await this.dbService.user.update({
+  updateTimeZone(uid: string, tz: string): Promise<void> {
+    return void this.dbService.user.update({
       where: {
-        id: userId,
+        id: uid,
       },
       data: {
         config: {
           update: {
-            timeZone,
+            timeZone: tz,
           },
         },
       },

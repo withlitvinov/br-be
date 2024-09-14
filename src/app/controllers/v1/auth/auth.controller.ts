@@ -1,108 +1,54 @@
-import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import {
   BadRequestException,
   Body,
   Controller,
   HttpCode,
   HttpStatus,
-  Inject,
+  InternalServerErrorException,
   Post,
+  Req,
   Res,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import {
-  ApiBadRequestResponse,
-  ApiBody,
-  ApiConflictResponse,
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
-import * as dayjs from 'dayjs';
-import * as tz from 'dayjs/plugin/timezone';
-import * as utc from 'dayjs/plugin/utc';
-import { CookieOptions, Response } from 'express';
-import { MurLock } from 'murlock';
+import { Request, Response } from 'express';
 
-dayjs.extend(utc);
-dayjs.extend(tz);
-dayjs.tz.setDefault('Etc/GMT');
-
-import { ApiVersion, ControllerVersionEnum, CookieEnum } from '@/common';
-import {
-  AuthService,
-  CheckRefreshToken,
-  Public,
-  RefreshToken,
-  SessionService,
-} from '@/modules/auth';
-import * as sessionServiceTypes from '@/modules/auth/services/session.service.types';
+import { ControllerVersionEnum, CookieEnum } from '@/common';
+import { dateUtils, ncu } from '@/common/utils';
+import { AuthService, Public, SessionService } from '@/modules/auth';
 import { TzService } from '@/modules/tz';
 
-import { V1_API_TAGS } from '../../../constants';
+import {
+  ControllerOpenApi,
+  LoginOpenApi,
+  LogoutOpenApi,
+  RegisterOpenApi,
+} from './auth.openapi';
+import { CONTROLLER_ROUTE, COOKIE_MAX_EXPIRATION_DAYS } from './constants';
+import { requests } from './dtos';
+import { buildCookieOptions } from './utils';
 
-import { request, response } from './dtos';
-
-const PATH_PREFIX = '/auth';
-
-const SESSION_TOKENS_LOCK_KEY = 'lock:session_tokens';
-
-const getSessionTokensCacheKey = (refreshToken: string) =>
-  `cache:session_tokens:${refreshToken}`;
-
-const getCookieOptions = (expires?: Date): CookieOptions => {
-  const isDev = process.env.NODE_ENV === 'development';
-
-  const options: CookieOptions = {
-    httpOnly: true,
-    sameSite: 'none',
-    secure: true,
-    expires,
-  };
-
-  if (isDev) {
-    options.sameSite = 'lax';
-    options.secure = false;
-  }
-
-  return options;
+const buildSidCookieOptions = () => {
+  return buildCookieOptions(
+    dateUtils.now().add(COOKIE_MAX_EXPIRATION_DAYS, 'days').toDate(),
+  );
 };
 
-const getRefreshCookieOptions = () =>
-  getCookieOptions(dayjs().tz().add(400, 'days').toDate());
-
+@ControllerOpenApi
 @Controller({
-  path: PATH_PREFIX,
+  path: CONTROLLER_ROUTE,
   version: ControllerVersionEnum.V1,
 })
-@ApiVersion(ControllerVersionEnum.V1)
-@ApiTags(V1_API_TAGS.AUTH)
 export class AuthControllerV1 {
-  private sessionTokensTtl = 0;
-
   constructor(
-    private configService: ConfigService,
     private readonly authService: AuthService,
     private readonly sessionService: SessionService,
     private readonly tzService: TzService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {
-    this.sessionTokensTtl = configService.get('SESSION_TOKENS_TTL');
-  }
+  ) {}
 
-  @ApiOperation({
-    summary: 'Register new user',
-  })
-  @ApiBody({
-    type: request.RegisterDto,
-  })
-  @ApiOkResponse()
-  @ApiConflictResponse()
-  @ApiBadRequestResponse()
+  @RegisterOpenApi
   @Public()
   @Post('/register')
-  async register(@Body() dto: request.RegisterDto) {
+  async register(@Body() dto: requests.RegisterDto): Promise<void> {
     const leadTz = await this.tzService.resolveLeadZone(dto.time_zone);
 
     if (!leadTz) {
@@ -118,136 +64,53 @@ export class AuthControllerV1 {
     });
   }
 
-  @ApiOperation({
-    summary: 'Login',
-  })
-  @ApiBody({
-    type: request.LoginDto,
-  })
-  @ApiOkResponse({
-    type: response.LoginDto,
-  })
+  @LoginOpenApi
   @Public()
   @HttpCode(HttpStatus.OK)
   @Post('/login')
   async login(
     @Res({ passthrough: true }) res: Response,
-    @Body() dto: request.LoginDto,
-  ): Promise<response.LoginDto> {
+    @Body() dto: requests.LoginDto,
+  ): Promise<void> {
     const user = await this.authService.getUser(dto.email);
 
-    if (!user) {
+    const isAuthorized = await ncu.pipeline([
+      user,
+      () => this.authService.verifyPassword(user.password, dto.password),
+    ]);
+
+    if (!isAuthorized) {
+      // Hide information about the presence of a user in the system from potential hackers
       throw new UnauthorizedException();
     }
 
-    const isValid = await this.authService.verifyPassword(
-      user.password,
-      dto.password,
-    );
+    const newSessionResult = await this.sessionService.registerSession(user.id);
 
-    if (!isValid) {
-      throw new UnauthorizedException();
+    if (newSessionResult.isErr()) {
+      throw new InternalServerErrorException();
     }
-
-    const { accessToken, accessTokenExpiresIn, refreshToken } =
-      await this.sessionService.createTokens(user.id);
 
     res.cookie(
-      CookieEnum.RefreshToken,
-      refreshToken,
-      getRefreshCookieOptions(),
+      CookieEnum.SID,
+      newSessionResult.value.sid,
+      buildSidCookieOptions(),
     );
-
-    return {
-      access_token: accessToken,
-      expires_in: accessTokenExpiresIn,
-    };
   }
 
-  @ApiOperation({
-    summary: 'Logout',
-  })
+  @LogoutOpenApi
   @Public()
-  @CheckRefreshToken() // TODO: Merge with @RefreshToken()
   @HttpCode(HttpStatus.OK)
   @Post('/logout')
   async logout(
-    @RefreshToken() refreshToken: string,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
-    await this.sessionService.expireSession(refreshToken);
-    await this.cacheManager.del(getSessionTokensCacheKey(refreshToken));
+    const sid = req.cookies[CookieEnum.SID];
 
-    res.clearCookie(CookieEnum.RefreshToken);
-  }
-
-  @ApiOperation({
-    summary: 'Refresh session',
-  })
-  @ApiOkResponse({
-    type: response.RefreshTokenDto,
-  })
-  @Public()
-  @CheckRefreshToken() // TODO: Merge with @RefreshToken()
-  @HttpCode(HttpStatus.OK)
-  @Post('/refresh')
-  @MurLock(5000, SESSION_TOKENS_LOCK_KEY, '0')
-  async refreshTokens(
-    @RefreshToken() refreshToken: string,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<response.RefreshTokenDto> {
-    const sessionTokensCacheKey = getSessionTokensCacheKey(refreshToken);
-
-    const cachedSessionTokens =
-      await this.cacheManager.get<sessionServiceTypes.SessionTokens>(
-        sessionTokensCacheKey,
-      );
-
-    if (cachedSessionTokens) {
-      res.cookie(
-        CookieEnum.RefreshToken,
-        cachedSessionTokens.refreshToken,
-        getRefreshCookieOptions(),
-      );
-
-      return {
-        access_token: cachedSessionTokens.accessToken,
-        expires_in: cachedSessionTokens.accessTokenExpiresIn,
-      };
+    if (sid) {
+      await this.sessionService.drop(sid);
     }
 
-    const sessionUserId = await this.sessionService.expireSession(refreshToken);
-
-    if (!sessionUserId) {
-      throw new UnauthorizedException();
-    }
-
-    const session = await this.sessionService.createTokens(sessionUserId);
-
-    const newSessionTokensCacheKey = getSessionTokensCacheKey(
-      session.refreshToken,
-    );
-
-    await this.cacheManager.set(
-      sessionTokensCacheKey,
-      session,
-      this.sessionTokensTtl,
-    );
-    await this.cacheManager.set(
-      newSessionTokensCacheKey,
-      session,
-      this.sessionTokensTtl,
-    );
-
-    res.cookie(
-      CookieEnum.RefreshToken,
-      session.refreshToken,
-      getRefreshCookieOptions(),
-    );
-
-    return {
-      access_token: session.accessToken,
-      expires_in: session.accessTokenExpiresIn,
-    };
+    res.clearCookie(CookieEnum.SID);
   }
 }

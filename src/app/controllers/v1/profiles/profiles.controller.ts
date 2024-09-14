@@ -19,7 +19,7 @@ import * as dayjs from 'dayjs';
 
 import { V1_API_TAGS } from '@/app/constants';
 import { ApiVersion, ControllerVersionEnum, uuidUtils } from '@/common';
-import { AuthorizedId } from '@/modules/auth';
+import { AuthorizedUserId } from '@/modules/auth';
 import {
   BirthdayMarkerEnum,
   ProfilesOrderEnum,
@@ -54,12 +54,12 @@ export class ProfilesControllerV1 {
     type: [response.ProfileDto],
   })
   async getMany(
-    @AuthorizedId() authorizedId: string,
+    @AuthorizedUserId() userId: string,
   ): Promise<response.ProfileDto[]> {
-    const userTz = await this.usersService.getTimeZone(authorizedId);
+    const userTz = await this.usersService.getTimeZone(userId);
 
     const profiles = await this.profilesService.getMany({
-      userId: authorizedId,
+      userId: userId,
       order: ProfilesOrderEnum.Upcoming,
       tz: userTz ?? undefined,
     });
@@ -89,7 +89,7 @@ export class ProfilesControllerV1 {
     type: response.ProfileDto,
   })
   async getById(
-    @AuthorizedId() authorizedId: string,
+    @AuthorizedUserId() userId: string,
     @Param('id') id: string,
   ): Promise<response.ProfileDto> {
     if (!uuidUtils.isValidUuid(id)) {
@@ -98,7 +98,7 @@ export class ProfilesControllerV1 {
 
     const isBelongToUser = await this.profilesService.isBelongToUser(
       id,
-      authorizedId,
+      userId,
     );
 
     if (!isBelongToUser) {
@@ -124,12 +124,12 @@ export class ProfilesControllerV1 {
     type: request.CreateDto,
   })
   async createOne(
-    @AuthorizedId() authorizedId: string,
+    @AuthorizedUserId() userId: string,
     @Body() dto: request.CreateDto,
   ): Promise<void> {
     const { name, birthday } = dto;
 
-    await this.profilesService.create(authorizedId, {
+    await this.profilesService.create(userId, {
       name,
       birthday,
     });
@@ -144,7 +144,7 @@ export class ProfilesControllerV1 {
     type: 'uuid',
   })
   async deleteById(
-    @AuthorizedId() authorizedId: string,
+    @AuthorizedUserId() userId: string,
     @Param('id') id: string,
   ): Promise<void> {
     if (!uuidUtils.isValidUuid(id)) {
@@ -153,7 +153,7 @@ export class ProfilesControllerV1 {
 
     const isBelongToUser = await this.profilesService.isBelongToUser(
       id,
-      authorizedId,
+      userId,
     );
 
     if (!isBelongToUser) {

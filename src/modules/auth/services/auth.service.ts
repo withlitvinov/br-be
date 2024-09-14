@@ -1,34 +1,31 @@
 import { Injectable } from '@nestjs/common';
 import * as argon2 from 'argon2';
 
-import { UserModel } from '../models';
-import * as modelTypes from '../models/user.model.types';
+import { UsersService } from '@/modules/users';
 
 import * as types from './auth.service.types';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly userModel: UserModel) {}
+  constructor(private usersService: UsersService) {}
 
   async getUser(email: string) {
-    return this.userModel.getByEmail(email);
+    return this.usersService.getByEmail(email);
   }
 
-  async registerUser(payload: types.RegisterUserPayload) {
-    const hashedPassword = await argon2.hash(payload.password);
+  async registerUser(p: types.RegisterUserPayload) {
+    const hPass = await argon2.hash(p.password);
 
-    const _payload: modelTypes.CreateUserPayload = {
-      name: payload.name,
-      email: payload.email,
-      password: hashedPassword,
-      birthday: new Date(payload.birthday),
-      timeZone: payload.timeZone,
-    };
-
-    return this.userModel.create(_payload);
+    return this.usersService.create({
+      name: p.name,
+      email: p.email,
+      password: hPass,
+      birthday: new Date(p.birthday),
+      timeZone: p.timeZone,
+    });
   }
 
-  async verifyPassword(password: string, value: string) {
-    return argon2.verify(password, value);
+  verifyPassword(pass: string, v: string) {
+    return argon2.verify(pass, v);
   }
 }

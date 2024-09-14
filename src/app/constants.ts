@@ -9,4 +9,10 @@ const V1_API_TAGS = {
   TZ: 'Time Zone (v1)',
 };
 
-export { NEUTRAL_API_TAGS, V1_API_TAGS };
+const CACHE_KEY_PREFIX = 'cache';
+
+enum CacheKeyEnum {
+  SID = 'sid',
+}
+
+export { NEUTRAL_API_TAGS, V1_API_TAGS, CACHE_KEY_PREFIX, CacheKeyEnum };
