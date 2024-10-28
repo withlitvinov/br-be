@@ -82,7 +82,7 @@ importers:
         version: 7.2.0
       nodemailer:
         specifier: ^6.9.14
-        version: 6.9.15
+        version: 6.9.16
       prisma:
         specifier: ^5.16.1
         version: 5.21.1
@@ -3095,8 +3095,8 @@ packages:
     resolution: {integrity: sha512-Dobp/ebDKBvz91sbtRKhcznLThrKxKt97GI2FAlAyy+fk19j73Uz3sBXolVtmcXjaorivqsbbbjDY+Jkt4/bQA==}
     engines: {node: '>=6.0.0'}
 
-  nodemailer@6.9.15:
-    resolution: {integrity: sha512-AHf04ySLC6CIfuRtRiEYtGEXgRfa6INgWGluDhnxTZhHSKvrBu7lc1VVchQ0d8nPc4cFaZoPq8vkyNoZr0TpGQ==}
+  nodemailer@6.9.16:
+    resolution: {integrity: sha512-psAuZdTIRN08HKVd/E8ObdV6NO7NTBY3KsC30F7M4H1OnmLCUNaS56FpYxyb26zWLSyYF9Ozch9KYHhHegsiOQ==}
     engines: {node: '>=6.0.0'}
 
   normalize-package-data@3.0.3:
@@ -7567,7 +7567,7 @@ snapshots:
 
   nodemailer@6.9.14: {}
 
-  nodemailer@6.9.15: {}
+  nodemailer@6.9.16: {}
 
   normalize-package-data@3.0.3:
     dependencies:
