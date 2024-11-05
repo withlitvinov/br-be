@@ -13,7 +13,7 @@ importers:
         version: 1.0.7(@nestjs/common@10.4.7(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@10.4.7)(@nestjs/swagger@7.4.2(@nestjs/common@10.4.7(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@10.4.7)(reflect-metadata@0.2.2))(reflect-metadata@0.2.2)
       '@nestjs/bullmq':
         specifier: ^10.2.0
-        version: 10.2.2(@nestjs/common@10.4.7(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@10.4.7)(bullmq@5.23.1)
+        version: 10.2.2(@nestjs/common@10.4.7(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@10.4.7)(bullmq@5.24.0)
       '@nestjs/cache-manager':
         specifier: ^2.2.2
         version: 2.3.0(@nestjs/common@10.4.7(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@10.4.7)(cache-manager@5.7.6)(rxjs@7.8.1)
@@ -46,7 +46,7 @@ importers:
         version: 0.41.0
       bullmq:
         specifier: ^5.12.8
-        version: 5.23.1
+        version: 5.24.0
       cache-manager:
         specifier: ^5.7.1
         version: 5.7.6
@@ -1327,8 +1327,8 @@ packages:
   buffer@5.7.1:
     resolution: {integrity: sha512-EHcyIPBQ4BSGlvjB16k5KgAJ27CIsHY/2JBmCRReo48y9rQ3MaUzWX3KVlBa4U7MyX02HdVj0K7C3WaB3ju7FQ==}
 
-  bullmq@5.23.1:
-    resolution: {integrity: sha512-WSN+EjtjjZ6n7f7YNdovc0nwVYRofhDSGjtBW4/+TjBiUwG0tv2L8FKWaLI9qVCgNI3kLra2CxrnDV0OWqTZPA==}
+  bullmq@5.24.0:
+    resolution: {integrity: sha512-rNWOg4opfHOhZjWWr1aIjfw2nUFB91F9qwIT49CdRypL4FznmHAqamTnw2EcZlj2KeFswV50tisZwq/h1yMUAw==}
 
   busboy@1.6.0:
     resolution: {integrity: sha512-8SFQbg/0hQ9xy3UNTB0YEnsNBbWfhf7RtnzpL7TkBiTBRfrQ9Fxcnz7VJsleJpyp6rVLvXiuORqjlHi5q+PYuA==}
@@ -4600,12 +4600,12 @@ snapshots:
       '@nestjs/core': 10.4.7(@nestjs/common@10.4.7(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/platform-express@10.4.7)(reflect-metadata@0.2.2)(rxjs@7.8.1)
       tslib: 2.8.0
 
-  '@nestjs/bullmq@10.2.2(@nestjs/common@10.4.7(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@10.4.7)(bullmq@5.23.1)':
+  '@nestjs/bullmq@10.2.2(@nestjs/common@10.4.7(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@10.4.7)(bullmq@5.24.0)':
     dependencies:
       '@nestjs/bull-shared': 10.2.2(@nestjs/common@10.4.7(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@10.4.7)
       '@nestjs/common': 10.4.7(reflect-metadata@0.2.2)(rxjs@7.8.1)
       '@nestjs/core': 10.4.7(@nestjs/common@10.4.7(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/platform-express@10.4.7)(reflect-metadata@0.2.2)(rxjs@7.8.1)
-      bullmq: 5.23.1
+      bullmq: 5.24.0
       tslib: 2.8.0
 
   '@nestjs/cache-manager@2.3.0(@nestjs/common@10.4.7(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@10.4.7)(cache-manager@5.7.6)(rxjs@7.8.1)':
@@ -5449,7 +5449,7 @@ snapshots:
       base64-js: 1.5.1
       ieee754: 1.2.1
 
-  bullmq@5.23.1:
+  bullmq@5.24.0:
     dependencies:
       cron-parser: 4.9.0
       ioredis: 5.4.1
